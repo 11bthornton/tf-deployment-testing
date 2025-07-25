@@ -16,6 +16,11 @@ on:
         description: 'Name of the Azure credentials secret'
         required: true
         type: string
+      plan_artifact_name:
+        description: 'Name of the plan artifact to download and apply'
+        required: false
+        type: string
+        default: ''
     secrets:
       azure_credentials:
         description: 'Azure service principal credentials'
@@ -44,6 +49,13 @@ jobs:
       with:
         creds: ${{ secrets.azure_credentials }}
     
+    - name: Download Terraform Plan
+      if: inputs.plan_artifact_name != ''
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.plan_artifact_name }}
+        path: ${{ inputs.working_directory }}
+    
     - name: Terraform Format Check
       id: fmt
       run: terraform fmt -check
@@ -56,12 +68,19 @@ jobs:
       id: validate
       run: terraform validate -no-color
     
-    - name: Terraform Plan
+    - name: Terraform Plan (if no artifact)
       id: plan
+      if: inputs.plan_artifact_name == ''
       run: terraform plan -no-color -input=false
     
-    - name: Terraform Apply
-      id: apply
+    - name: Terraform Apply (with plan file)
+      id: apply-with-plan
+      if: inputs.plan_artifact_name != ''
+      run: terraform apply -auto-approve tfplan
+    
+    - name: Terraform Apply (without plan file)
+      id: apply-without-plan
+      if: inputs.plan_artifact_name == ''
       run: terraform apply -auto-approve -input=false
     
     - name: Terraform Output

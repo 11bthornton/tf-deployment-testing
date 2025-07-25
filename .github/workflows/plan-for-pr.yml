@@ -15,51 +15,14 @@ env:
 jobs:
   terraform-plan:
     name: 'Terraform Plan for PR'
-    runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-    
-    outputs:
-      plan_output: ${{ steps.plan.outputs.stdout }}
-      fmt_outcome: ${{ steps.fmt.outcome }}
-      init_outcome: ${{ steps.init.outcome }}
-      validate_outcome: ${{ steps.validate.outcome }}
-      plan_outcome: ${{ steps.plan.outcome }}
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-        terraform_wrapper: false
-    
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-    - name: Terraform Format Check
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-    
-    - name: Terraform Init
-      id: init
-      run: terraform init
-    
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
-    
-    - name: Terraform Plan
-      id: plan
-      run: terraform plan -no-color -input=false
-      continue-on-error: true
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      working_directory: ${{ env.WORKING_DIRECTORY }}
+      terraform_version: ${{ env.TF_VERSION }}
+      credentials_secret_name: ${{ env.CREDENTIALS_SECRET_NAME }}
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      repo_token: ${{ secrets.GITHUB_TOKEN }}
 
   comment-pr:
     name: 'Comment on PR'

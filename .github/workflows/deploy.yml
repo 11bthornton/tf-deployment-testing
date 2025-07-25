@@ -13,12 +13,52 @@ on:
         default: '1.5.0'
 
 jobs:
+  terraform-plan:
+    name: 'Terraform Plan'
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      working_directory: ${{ github.event.inputs.working_directory || './infrastructure' }}
+      terraform_version: ${{ github.event.inputs.terraform_version || '1.5.0' }}
+      credentials_secret_name: 'AZURE_CREDENTIALS'
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+  show-plan:
+    name: 'Show Plan Summary'
+    runs-on: ubuntu-latest
+    needs: terraform-plan
+    steps:
+    - name: Add Plan to Job Summary
+      run: |
+        echo "## 🚀 Terraform Deployment Plan" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Working Directory:** \`${{ github.event.inputs.working_directory || './infrastructure' }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "**Terraform Version:** \`${{ github.event.inputs.terraform_version || '1.5.0' }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Plan Status" >> $GITHUB_STEP_SUMMARY
+        echo "- **Format Check:** ${{ needs.terraform-plan.outputs.fmt_outcome == 'success' && '✅' || '❌' }} \`${{ needs.terraform-plan.outputs.fmt_outcome }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Initialization:** ${{ needs.terraform-plan.outputs.init_outcome == 'success' && '✅' || '❌' }} \`${{ needs.terraform-plan.outputs.init_outcome }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Validation:** ${{ needs.terraform-plan.outputs.validate_outcome == 'success' && '✅' || '❌' }} \`${{ needs.terraform-plan.outputs.validate_outcome }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Plan Generation:** ${{ needs.terraform-plan.outputs.plan_outcome == 'success' && '✅' || '❌' }} \`${{ needs.terraform-plan.outputs.plan_outcome }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Terraform Plan Output" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`terraform" >> $GITHUB_STEP_SUMMARY
+        echo "${{ needs.terraform-plan.outputs.plan_output }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "*Plan generated at: $(date)*" >> $GITHUB_STEP_SUMMARY
+
   terraform-apply:
     name: 'Terraform Apply'
+    needs: [terraform-plan, show-plan]
     uses: ./.github/workflows/terraform-apply.yml
     with:
       working_directory: ${{ github.event.inputs.working_directory || './infrastructure' }}
       terraform_version: ${{ github.event.inputs.terraform_version || '1.5.0' }}
       credentials_secret_name: 'AZURE_CREDENTIALS'
+      plan_artifact_name: 'terraform-plan-${{ github.run_id }}'
     secrets:
       azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
