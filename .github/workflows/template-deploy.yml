@@ -34,9 +34,38 @@ jobs:
       azure_credentials: ${{ secrets.AZURE_CREDENTIALS || secrets.azure_credentials }}
       repo_token: ${{ secrets.GITHUB_TOKEN }}
 
+  manual-approval:
+    name: 'Manual Approval Required'
+    runs-on: ubuntu-latest
+    needs: terraform-plan
+    if: needs.terraform-plan.outputs.has_changes == 'true'
+    environment:
+      name: approval-${{ inputs.environment_code }}
+    steps:
+      - name: Display Plan Summary
+        run: |
+          echo "## 🔍 Deployment Review Required"
+          echo ""
+          echo "**Environment:** ${{ inputs.environment_code }}"
+          echo "**Working Directory:** ${{ inputs.working_directory }}"
+          echo "**Changes Detected:** ✅ Yes"
+          echo "**Plan Exit Code:** ${{ needs.terraform-plan.outputs.plan_exit_code }}"
+          echo ""
+          echo "### Next Steps"
+          echo "- Review the Terraform plan output from the previous job"
+          echo "- Verify the changes are expected and safe"
+          echo "- Approve this deployment to proceed with terraform apply"
+          echo "- Or cancel to abort the deployment"
+          echo ""
+          echo "**Note:** This approval step only appears when Terraform detects changes to apply."
+
   terraform-apply:
     name: 'Terraform Apply'
-    needs: terraform-plan
+    needs: [terraform-plan, manual-approval]
+    if: |
+      always() && 
+      needs.terraform-plan.result == 'success' &&
+      (needs.terraform-plan.outputs.has_changes != 'true' || needs.manual-approval.result == 'success')
     uses: ./.github/workflows/template-terraform-apply.yml
     with:
       working_directory: ${{ inputs.working_directory || './infrastructure' }}
