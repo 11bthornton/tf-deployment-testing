@@ -4,3 +4,11 @@ resource "azurerm_resource_group" "main" {
 
   tags = var.tags
 }
+
+
+resource "azurerm_resource_group" "sdfsdf" {
+  name     = "sdfasdasdas"
+  location = var.location
+
+  tags = var.tags
+}

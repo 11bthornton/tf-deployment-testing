@@ -4,7 +4,7 @@ output "resource_group_name" {
 }
 
 output "resource_group_id" {
-  description = "The ID of the created resource group"
+  description = "The ID of the created resource gr sdfdf oup"
   value       = azurerm_resource_group.main.id
 }
 

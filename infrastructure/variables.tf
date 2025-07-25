@@ -5,13 +5,13 @@ variable "resource_group_name" {
 }
 
 variable "location" {
-  description = "The Azure region where the resource group will be created"
+  description = "The Azure region  sdsdf sdf sd fsd f where the resource group will be created"
   type        = string
   default     = "East US"
 }
 
 variable "tags" {
-  description = "A map of tags to assign to the resource group"
+  description = "A map of tags to assign to the resource grou sdsf p"
   type        = map(string)
   default = {
     Environment = "Development"
