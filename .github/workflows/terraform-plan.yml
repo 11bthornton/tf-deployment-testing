@@ -16,6 +16,22 @@ on:
         description: 'Name of the Azure credentials secret'
         required: true
         type: string
+    outputs:
+      plan_output:
+        description: 'The Terraform plan output'
+        value: ${{ jobs.terraform-plan.outputs.plan_output }}
+      fmt_outcome:
+        description: 'The format check outcome'
+        value: ${{ jobs.terraform-plan.outputs.fmt_outcome }}
+      init_outcome:
+        description: 'The init outcome'
+        value: ${{ jobs.terraform-plan.outputs.init_outcome }}
+      validate_outcome:
+        description: 'The validation outcome'
+        value: ${{ jobs.terraform-plan.outputs.validate_outcome }}
+      plan_outcome:
+        description: 'The plan outcome'
+        value: ${{ jobs.terraform-plan.outputs.plan_outcome }}
     secrets:
       azure_credentials:
         description: 'Azure service principal credentials'
@@ -30,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     
     outputs:
-      plan_output: ${{ steps.plan-display.outputs.stdout }}
+      plan_output: ${{ steps.plan-display.outputs.plan_output }}
       fmt_outcome: ${{ steps.fmt.outcome }}
       init_outcome: ${{ steps.init.outcome }}
       validate_outcome: ${{ steps.validate.outcome }}
@@ -70,7 +86,14 @@ jobs:
     
     - name: Terraform Plan (for display)
       id: plan-display
-      run: terraform plan -no-color -input=false
+      run: |
+        terraform plan -no-color -input=false | tee plan_output.txt
+        # Set the output using a simpler method
+        {
+          echo 'plan_output<<EOF'
+          cat plan_output.txt
+          echo 'EOF'
+        } >> $GITHUB_OUTPUT
       continue-on-error: true
     
     - name: Terraform Plan (for apply)
@@ -95,7 +118,7 @@ jobs:
         echo "### Terraform Plan Output" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`terraform" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.plan-display.outputs.stdout }}" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.plan-display.outputs.plan_output }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "---" >> $GITHUB_STEP_SUMMARY
