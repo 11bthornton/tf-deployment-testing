@@ -7,19 +7,14 @@ on:
     paths:
       - 'infrastructure/**'
 
-env:
-  TF_VERSION: '1.5.0'
-  WORKING_DIRECTORY: './infrastructure'
-  CREDENTIALS_SECRET_NAME: 'AZURE_CREDENTIALS'
-
 jobs:
   terraform-plan:
     name: 'Terraform Plan for PR'
     uses: ./.github/workflows/terraform-plan.yml
     with:
-      working_directory: ${{ env.WORKING_DIRECTORY }}
-      terraform_version: ${{ env.TF_VERSION }}
-      credentials_secret_name: ${{ env.CREDENTIALS_SECRET_NAME }}
+      working_directory: './infrastructure'
+      terraform_version: '1.5.0'
+      credentials_secret_name: 'AZURE_CREDENTIALS'
     secrets:
       azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
       repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +47,7 @@ jobs:
           </details>
           
           *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*
-          *Working Directory: ${{ env.WORKING_DIRECTORY }}*`;
+          *Working Directory: ./infrastructure*`;
           
           github.rest.issues.createComment({
             issue_number: context.issue.number,
