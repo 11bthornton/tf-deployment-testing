@@ -33,6 +33,12 @@ on:
       plan_outcome:
         description: 'The plan outcome'
         value: ${{ jobs.terraform-plan.outputs.plan_outcome }}
+      plan_exit_code:
+        description: 'The Terraform plan exit code'
+        value: ${{ jobs.terraform-plan.outputs.plan_exit_code }}
+      has_changes:
+        description: 'Whether the plan has changes'
+        value: ${{ jobs.terraform-plan.outputs.has_changes }}
 
     secrets:
       azure_credentials:
@@ -53,6 +59,8 @@ jobs:
       init_outcome: ${{ steps.init.outcome }}
       validate_outcome: ${{ steps.validate.outcome }}
       plan_outcome: ${{ steps.plan.outcome }}
+      plan_exit_code: ${{ steps.plan.outputs.plan_exit_code }}
+      has_changes: ${{ steps.plan.outputs.has_changes }}
     
     defaults:
       run:
@@ -92,11 +100,32 @@ jobs:
         # Run plan and capture output for display
         terraform plan -no-color -input=false | tee plan_output.txt
         
+        # Capture the exit code from the plan command
+        terraform plan -no-color -input=false -detailed-exitcode -out=tfplan
+        PLAN_EXIT_CODE=$?
+        
         # Debug: Check file contents
         echo "Plan output file size: $(wc -c < plan_output.txt) bytes"
         echo "First 200 chars of plan:"
         head -c 200 plan_output.txt
         echo -e "\n--- End preview ---"
+        echo "Terraform plan exit code: $PLAN_EXIT_CODE"
+        
+        # Set the exit code output
+        echo "plan_exit_code=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
+        
+        # Determine if there are changes based on exit code
+        # Exit code 0 = no changes, 1 = error, 2 = changes present
+        if [ $PLAN_EXIT_CODE -eq 2 ]; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+          echo "✅ Plan completed successfully with changes to apply"
+        elif [ $PLAN_EXIT_CODE -eq 0 ]; then
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+          echo "✅ Plan completed successfully with no changes"
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+          echo "❌ Plan failed with exit code: $PLAN_EXIT_CODE"
+        fi
         
         # Set the output for PR comments
         {
@@ -104,9 +133,6 @@ jobs:
           cat plan_output.txt
           echo 'EOF'
         } >> $GITHUB_OUTPUT
-        
-        # Generate binary plan file for apply
-        terraform plan -no-color -input=false -out=tfplan
         
         # Debug: Check if output was set
         echo "Output variable set, checking..."
@@ -129,6 +155,13 @@ jobs:
         echo "- **Initialization:** ${{ steps.init.outcome == 'success' && '✅' || '❌' }} \`${{ steps.init.outcome }}\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Validation:** ${{ steps.validate.outcome == 'success' && '✅' || '❌' }} \`${{ steps.validate.outcome }}\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Plan Generation:** ${{ steps.plan.outcome == 'success' && '✅' || '❌' }} \`${{ steps.plan.outcome }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Plan Exit Code:** \`${{ steps.plan.outputs.plan_exit_code }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Has Changes:** ${{ steps.plan.outputs.has_changes == 'true' && '🔄 Yes' || '✅ No' }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Exit Code Reference" >> $GITHUB_STEP_SUMMARY
+        echo "- **0:** No changes, infrastructure matches configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- **1:** Error occurred during planning" >> $GITHUB_STEP_SUMMARY
+        echo "- **2:** Changes detected, apply needed" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Terraform Plan Output" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -146,7 +179,4 @@ jobs:
         name: terraform-plan-${{ github.run_id }}
         path: ${{ inputs.working_directory }}/tfplan
         retention-days: 5
-    
-    - name: Terraform Plan Status
-      if: steps.plan.outcome == 'failure'
-      run: exit 1
+
