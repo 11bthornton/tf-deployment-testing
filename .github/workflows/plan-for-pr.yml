@@ -2,10 +2,9 @@ name: Plan for Pull Request
 
 on:
   pull_request:
-    branches:
-      - main
-    paths:
-      - 'infrastructure/**'
+    branches: [ $default_branch ]
+      paths:
+        - 'infrastructure/**'
 
 permissions:
   contents: read
@@ -15,7 +14,7 @@ permissions:
 jobs:
   terraform-plan:
     name: 'Terraform Plan for PR'
-    uses: ./.github/workflows/terraform-plan.yml
+    uses: ./.github/workflows/template-terraform-plan.yml
     with:
       working_directory: './infrastructure'
       terraform_version: '1.9.8'
@@ -43,11 +42,6 @@ jobs:
       with:
         terraform_version: '1.9.8'
         terraform_wrapper: false
-    
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
     
     - name: Terraform Init
       run: terraform init
