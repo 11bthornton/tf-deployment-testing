@@ -12,18 +12,13 @@ on:
         required: false
         default: '1.5.0'
 
-env:
-  TF_VERSION: ${{ github.event.inputs.terraform_version || '1.5.0' }}
-  WORKING_DIRECTORY: ${{ github.event.inputs.working_directory || './infrastructure' }}
-  CREDENTIALS_SECRET_NAME: 'AZURE_CREDENTIALS'
-
 jobs:
   terraform-apply:
     name: 'Terraform Apply'
     uses: ./.github/workflows/terraform-apply.yml
     with:
-      working_directory: ${{ env.WORKING_DIRECTORY }}
-      terraform_version: ${{ env.TF_VERSION }}
-      credentials_secret_name: ${{ env.CREDENTIALS_SECRET_NAME }}
+      working_directory: ${{ github.event.inputs.working_directory || './infrastructure' }}
+      terraform_version: ${{ github.event.inputs.terraform_version || '1.5.0' }}
+      credentials_secret_name: 'AZURE_CREDENTIALS'
     secrets:
       azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
