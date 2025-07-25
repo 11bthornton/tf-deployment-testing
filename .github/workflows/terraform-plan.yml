@@ -20,6 +20,9 @@ on:
       plan_output:
         description: 'The Terraform plan output'
         value: ${{ jobs.terraform-plan.outputs.plan_output }}
+      plan_output_b64:
+        description: 'The Terraform plan output (base64 encoded)'
+        value: ${{ jobs.terraform-plan.outputs.plan_output_b64 }}
       fmt_outcome:
         description: 'The format check outcome'
         value: ${{ jobs.terraform-plan.outputs.fmt_outcome }}
@@ -46,7 +49,8 @@ jobs:
     runs-on: ubuntu-latest
     
     outputs:
-      plan_output: ${{ steps.plan-display.outputs.plan_output }}
+      plan_output: ${{ steps.plan.outputs.plan_output }}
+      plan_output_b64: ${{ steps.plan.outputs.plan_output_b64 }}
       fmt_outcome: ${{ steps.fmt.outcome }}
       init_outcome: ${{ steps.init.outcome }}
       validate_outcome: ${{ steps.validate.outcome }}
@@ -84,34 +88,39 @@ jobs:
       id: validate
       run: terraform validate -no-color
     
-    - name: Terraform Plan (for display)
-      id: plan-display
+    - name: Terraform Plan
+      id: plan
       run: |
+        # Run plan and capture output for display
         terraform plan -no-color -input=false | tee plan_output.txt
+        
         # Debug: Check file contents
         echo "Plan output file size: $(wc -c < plan_output.txt) bytes"
         echo "First 200 chars of plan:"
         head -c 200 plan_output.txt
         echo -e "\n--- End preview ---"
         
-        # Set the output using a simpler method
+        # Try base64 encoding for reliable transfer
+        plan_b64=$(base64 -w 0 plan_output.txt)
+        echo "plan_output_b64=${plan_b64}" >> $GITHUB_OUTPUT
+        
+        # Also try the regular method as backup
         {
           echo 'plan_output<<EOF'
           cat plan_output.txt
           echo 'EOF'
         } >> $GITHUB_OUTPUT
         
+        # Generate binary plan file for apply
+        terraform plan -no-color -input=false -out=tfplan
+        
         # Debug: Check if output was set
         echo "Output variable set, checking..."
+        echo "Base64 output length: ${#plan_b64}"
         if [ -n "${GITHUB_OUTPUT}" ]; then
           echo "GITHUB_OUTPUT file exists and contains:"
           tail -20 "${GITHUB_OUTPUT}"
         fi
-      continue-on-error: true
-    
-    - name: Terraform Plan (for apply)
-      id: plan
-      run: terraform plan -no-color -input=false -out=tfplan
       continue-on-error: true
     
     - name: Add Plan to Job Summary
@@ -131,7 +140,7 @@ jobs:
         echo "### Terraform Plan Output" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`terraform" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.plan-display.outputs.plan_output }}" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.plan.outputs.plan_output }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "---" >> $GITHUB_STEP_SUMMARY

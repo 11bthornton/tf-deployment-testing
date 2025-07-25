@@ -30,11 +30,56 @@ jobs:
     needs: terraform-plan
     if: github.event_name == 'pull_request'
     
+    defaults:
+      run:
+        working-directory: './infrastructure'
+    
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.5.0'
+        terraform_wrapper: false
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Terraform Init
+      run: terraform init
+    
+    - name: Download Terraform Plan
+      uses: actions/download-artifact@v4
+      with:
+        name: terraform-plan-${{ github.run_id }}
+        path: './infrastructure'
+    
+    - name: Generate Plan Output
+      id: show-plan
+      run: |
+        # Use terraform show to get readable plan output
+        terraform show -no-color tfplan > plan_readable.txt
+        
+        # Debug
+        echo "Plan file size: $(wc -c < plan_readable.txt) bytes"
+        echo "First 200 chars:"
+        head -c 200 plan_readable.txt
+        
+        # Set output
+        {
+          echo 'plan_content<<EOF'
+          cat plan_readable.txt
+          echo 'EOF'
+        } >> $GITHUB_OUTPUT
+    
     - name: Update Pull Request
       uses: actions/github-script@v7
       env:
-        PLAN: ${{ needs.terraform-plan.outputs.plan_output }}
+        PLAN: ${{ steps.show-plan.outputs.plan_content }}
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
