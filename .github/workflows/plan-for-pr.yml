@@ -38,6 +38,12 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
+          // Debug: Check what we're getting
+          console.log('Plan output length:', process.env.PLAN ? process.env.PLAN.length : 'undefined');
+          console.log('Plan output preview:', process.env.PLAN ? process.env.PLAN.substring(0, 200) + '...' : 'NO PLAN');
+          
+          const planOutput = process.env.PLAN || 'No plan output available';
+          
           const output = `#### Terraform Format and Style 🖌\`${{ needs.terraform-plan.outputs.fmt_outcome }}\`
           #### Terraform Initialization ⚙️\`${{ needs.terraform-plan.outputs.init_outcome }}\`
           #### Terraform Validation 🤖\`${{ needs.terraform-plan.outputs.validate_outcome }}\`
@@ -46,7 +52,7 @@ jobs:
           <details><summary>Show Plan</summary>
           
           \`\`\`terraform
-          ${process.env.PLAN}
+          ${planOutput}
           \`\`\`
           
           </details>

@@ -88,12 +88,25 @@ jobs:
       id: plan-display
       run: |
         terraform plan -no-color -input=false | tee plan_output.txt
+        # Debug: Check file contents
+        echo "Plan output file size: $(wc -c < plan_output.txt) bytes"
+        echo "First 200 chars of plan:"
+        head -c 200 plan_output.txt
+        echo -e "\n--- End preview ---"
+        
         # Set the output using a simpler method
         {
           echo 'plan_output<<EOF'
           cat plan_output.txt
           echo 'EOF'
         } >> $GITHUB_OUTPUT
+        
+        # Debug: Check if output was set
+        echo "Output variable set, checking..."
+        if [ -n "${GITHUB_OUTPUT}" ]; then
+          echo "GITHUB_OUTPUT file exists and contains:"
+          tail -20 "${GITHUB_OUTPUT}"
+        fi
       continue-on-error: true
     
     - name: Terraform Plan (for apply)
