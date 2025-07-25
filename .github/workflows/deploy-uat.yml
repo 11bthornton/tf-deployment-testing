@@ -1,0 +1,24 @@
+name: Deploy to UAT
+
+on:
+  workflow_dispatch:
+    inputs:
+      working_directory:
+        description: 'Directory containing Terraform configuration'
+        required: false
+        default: './infrastructure'
+      terraform_version:
+        description: 'Terraform version to use'
+        required: false
+        default: '1.9.8'
+
+jobs:
+  deploy-uat:
+    name: 'Deploy to UAT'
+    uses: ./.github/workflows/template-deploy.yml
+    with:
+      working_directory: ${{ github.event.inputs.working_directory || './infrastructure' }}
+      terraform_version: ${{ github.event.inputs.terraform_version || '1.9.8' }}
+      environment_code: 'uat'
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}

@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/terraform-plan.yml
     with:
       working_directory: './infrastructure'
-      terraform_version: '1.5.0'
+      terraform_version: '1.9.8'
       credentials_secret_name: 'AZURE_CREDENTIALS'
     secrets:
       azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
@@ -41,7 +41,7 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: '1.5.0'
+        terraform_version: '1.9.8'
         terraform_wrapper: false
     
     - name: Azure Login
