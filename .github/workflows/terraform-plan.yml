@@ -16,6 +16,22 @@ on:
         description: 'Name of the Azure credentials secret'
         required: true
         type: string
+    outputs:
+      plan_output:
+        description: 'The Terraform plan output'
+        value: ${{ jobs.terraform-plan.outputs.plan_output }}
+      fmt_outcome:
+        description: 'The format check outcome'
+        value: ${{ jobs.terraform-plan.outputs.fmt_outcome }}
+      init_outcome:
+        description: 'The init outcome'
+        value: ${{ jobs.terraform-plan.outputs.init_outcome }}
+      validate_outcome:
+        description: 'The validation outcome'
+        value: ${{ jobs.terraform-plan.outputs.validate_outcome }}
+      plan_outcome:
+        description: 'The plan outcome'
+        value: ${{ jobs.terraform-plan.outputs.plan_outcome }}
     secrets:
       azure_credentials:
         description: 'Azure service principal credentials'
