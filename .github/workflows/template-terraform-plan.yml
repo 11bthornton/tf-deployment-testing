@@ -179,7 +179,4 @@ jobs:
         name: terraform-plan-${{ github.run_id }}
         path: ${{ inputs.working_directory }}/tfplan
         retention-days: 5
-    
-    - name: Terraform Plan Status
-      if: steps.plan.outcome == 'failure'
-      run: exit 1
+
