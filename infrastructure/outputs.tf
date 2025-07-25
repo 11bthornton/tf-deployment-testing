@@ -9,6 +9,6 @@ output "resource_group_id" {
 }
 
 output "resource_group_location" {
-  description = "The location of the created resource group"
+  description = "The location of the created res ss s s Ssource group"
   value       = azurerm_resource_group.main.location
 }

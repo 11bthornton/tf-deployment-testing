@@ -11,11 +11,12 @@ on:
         description: 'Terraform version to use'
         required: false
         type: string
-        default: '1.5.0'
+        default: '1.9.8'
       credentials_secret_name:
         description: 'Name of the Azure credentials secret'
         required: true
         type: string
+        
     outputs:
       plan_output:
         description: 'The Terraform plan output'
@@ -32,6 +33,7 @@ on:
       plan_outcome:
         description: 'The plan outcome'
         value: ${{ jobs.terraform-plan.outputs.plan_outcome }}
+
     secrets:
       azure_credentials:
         description: 'Azure service principal credentials'
@@ -46,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     
     outputs:
-      plan_output: ${{ steps.plan-display.outputs.plan_output }}
+      plan_output: ${{ steps.plan.outputs.plan_output }}
       fmt_outcome: ${{ steps.fmt.outcome }}
       init_outcome: ${{ steps.init.outcome }}
       validate_outcome: ${{ steps.validate.outcome }}
@@ -84,21 +86,34 @@ jobs:
       id: validate
       run: terraform validate -no-color
     
-    - name: Terraform Plan (for display)
-      id: plan-display
+    - name: Terraform Plan
+      id: plan
       run: |
+        # Run plan and capture output for display
         terraform plan -no-color -input=false | tee plan_output.txt
-        # Set the output using a simpler method
+        
+        # Debug: Check file contents
+        echo "Plan output file size: $(wc -c < plan_output.txt) bytes"
+        echo "First 200 chars of plan:"
+        head -c 200 plan_output.txt
+        echo -e "\n--- End preview ---"
+        
+        # Set the output for PR comments
         {
           echo 'plan_output<<EOF'
           cat plan_output.txt
           echo 'EOF'
         } >> $GITHUB_OUTPUT
-      continue-on-error: true
-    
-    - name: Terraform Plan (for apply)
-      id: plan
-      run: terraform plan -no-color -input=false -out=tfplan
+        
+        # Generate binary plan file for apply
+        terraform plan -no-color -input=false -out=tfplan
+        
+        # Debug: Check if output was set
+        echo "Output variable set, checking..."
+        if [ -n "${GITHUB_OUTPUT}" ]; then
+          echo "GITHUB_OUTPUT file exists and contains:"
+          tail -20 "${GITHUB_OUTPUT}"
+        fi
       continue-on-error: true
     
     - name: Add Plan to Job Summary
@@ -118,7 +133,7 @@ jobs:
         echo "### Terraform Plan Output" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`terraform" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.plan-display.outputs.plan_output }}" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.plan.outputs.plan_output }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "---" >> $GITHUB_STEP_SUMMARY
