@@ -1,0 +1,47 @@
+name: Deploy Infrastructure to Azure
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        description: 'Directory containing Terraform configuration'
+        required: false
+        type: string
+        default: './infrastructure'
+      terraform_version:
+        description: 'Terraform version to use'
+        required: false
+        type: string
+        default: '1.9.8'
+      environment_code:
+        description: 'Environment code (dev, uat, prod)'
+        required: true
+        type: string
+    secrets:
+      azure_credentials:
+        description: 'Azure service principal credentials'
+        required: true
+
+jobs:
+  terraform-plan:
+    name: 'Terraform Plan'
+    uses: ./.github/workflows/template-terraform-plan.yml
+    with:
+      working_directory: ${{ inputs.working_directory || './infrastructure' }}
+      terraform_version: ${{ inputs.terraform_version || '1.9.8' }}
+      credentials_secret_name: 'AZURE_CREDENTIALS'
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS || secrets.azure_credentials }}
+      repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+  terraform-apply:
+    name: 'Terraform Apply'
+    needs: terraform-plan
+    uses: ./.github/workflows/template-terraform-apply.yml
+    with:
+      working_directory: ${{ inputs.working_directory || './infrastructure' }}
+      terraform_version: ${{ inputs.terraform_version || '1.9.8' }}
+      credentials_secret_name: 'AZURE_CREDENTIALS'
+      plan_artifact_name: 'terraform-plan-${{ github.run_id }}'
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS || secrets.azure_credentials }}
