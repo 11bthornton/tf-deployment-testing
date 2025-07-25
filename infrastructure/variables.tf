@@ -11,7 +11,7 @@ variable "location" {
 }
 
 variable "tags" {
-  description = "A map of tags to assign to the resource group"
+  description = "A map of tags to assign to the resource grou sdsf p"
   type        = map(string)
   default = {
     Environment = "Development"
