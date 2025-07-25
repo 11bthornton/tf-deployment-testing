@@ -20,7 +20,7 @@ on:
       azure_credentials:
         description: 'Azure service principal credentials'
         required: true
-      github_token:
+      repo_token:
         description: 'GitHub token for PR comments'
         required: true
 
@@ -71,7 +71,7 @@ jobs:
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
-        github-token: ${{ secrets.github_token }}
+        github-token: ${{ secrets.repo_token }}
         script: |
           const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
           #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`

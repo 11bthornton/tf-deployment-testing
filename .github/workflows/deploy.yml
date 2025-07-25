@@ -1,39 +1,25 @@
 name: Deploy Infrastructure to Azure
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'infrastructure/**'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'infrastructure/**'
   workflow_dispatch:
+    inputs:
+      working_directory:
+        description: 'Directory containing Terraform configuration'
+        required: false
+        default: './infrastructure'
+      terraform_version:
+        description: 'Terraform version to use'
+        required: false
+        default: '1.5.0'
 
 env:
-  TF_VERSION: '1.5.0'
-  WORKING_DIRECTORY: './infrastructure'
+  TF_VERSION: ${{ github.event.inputs.terraform_version || '1.5.0' }}
+  WORKING_DIRECTORY: ${{ github.event.inputs.working_directory || './infrastructure' }}
   CREDENTIALS_SECRET_NAME: 'AZURE_CREDENTIALS'
 
 jobs:
-  terraform-plan:
-    name: 'Terraform Plan'
-    if: github.event_name == 'pull_request'
-    uses: ./.github/workflows/terraform-plan.yml
-    with:
-      working_directory: ${{ env.WORKING_DIRECTORY }}
-      terraform_version: ${{ env.TF_VERSION }}
-      credentials_secret_name: ${{ env.CREDENTIALS_SECRET_NAME }}
-    secrets:
-      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-      github_token: ${{ secrets.GITHUB_TOKEN }}
-
   terraform-apply:
     name: 'Terraform Apply'
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     uses: ./.github/workflows/terraform-apply.yml
     with:
       working_directory: ${{ env.WORKING_DIRECTORY }}
