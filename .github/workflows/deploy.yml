@@ -16,83 +16,28 @@ on:
 env:
   TF_VERSION: '1.5.0'
   WORKING_DIRECTORY: './infrastructure'
+  CREDENTIALS_SECRET_NAME: 'AZURE_CREDENTIALS'
 
 jobs:
-  terraform:
-    name: 'Terraform'
-    runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
-    
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-    - name: Terraform Format Check
-      id: fmt
-      run: terraform fmt -check
-      continue-on-error: true
-    
-    - name: Terraform Init
-      id: init
-      run: terraform init
-    
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
-    
-    - name: Terraform Plan
-      id: plan
-      if: github.event_name == 'pull_request'
-      run: terraform plan -no-color -input=false
-      continue-on-error: true
-    
-    - name: Update Pull Request
-      uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
-      env:
-        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-          
-          <details><summary>Show Plan</summary>
-          
-          \`\`\`\n
-          ${process.env.PLAN}
-          \`\`\`
-          
-          </details>
-          
-          *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-          
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: output
-          })
-    
-    - name: Terraform Plan Status
-      if: steps.plan.outcome == 'failure'
-      run: exit 1
-    
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -auto-approve -input=false
+  terraform-plan:
+    name: 'Terraform Plan'
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      working_directory: ${{ env.WORKING_DIRECTORY }}
+      terraform_version: ${{ env.TF_VERSION }}
+      credentials_secret_name: ${{ env.CREDENTIALS_SECRET_NAME }}
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  terraform-apply:
+    name: 'Terraform Apply'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      working_directory: ${{ env.WORKING_DIRECTORY }}
+      terraform_version: ${{ env.TF_VERSION }}
+      credentials_secret_name: ${{ env.CREDENTIALS_SECRET_NAME }}
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}

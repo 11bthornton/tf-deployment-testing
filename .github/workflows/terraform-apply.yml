@@ -1,0 +1,70 @@
+name: Terraform Apply
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        description: 'Directory containing Terraform configuration'
+        required: true
+        type: string
+      terraform_version:
+        description: 'Terraform version to use'
+        required: false
+        type: string
+        default: '1.5.0'
+      credentials_secret_name:
+        description: 'Name of the Azure credentials secret'
+        required: true
+        type: string
+    secrets:
+      azure_credentials:
+        description: 'Azure service principal credentials'
+        required: true
+
+jobs:
+  terraform-apply:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform_version }}
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.azure_credentials }}
+    
+    - name: Terraform Format Check
+      id: fmt
+      run: terraform fmt -check
+    
+    - name: Terraform Init
+      id: init
+      run: terraform init
+    
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
+    
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -no-color -input=false
+    
+    - name: Terraform Apply
+      id: apply
+      run: terraform apply -auto-approve -input=false
+    
+    - name: Terraform Output
+      id: output
+      run: terraform output -json
+      continue-on-error: true
