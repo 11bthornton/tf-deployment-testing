@@ -4,21 +4,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  plan:
-    uses: ./.github/workflows/terraform-plan.yml
-    with:
-      working-directory: infrastructure
-      environment: approval-uat
-      unique-suffix: 'example-suffix'
-    secrets:
-      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+  dev:
+    name: 'Deploy to Dev'
+    uses: ./.github/workflows/deploy.template.yml
 
-  apply:
-    needs: plan
-    uses: ./.github/workflows/terraform-apply.yml
-    with:
-      working-directory: infrastructure
-      environment: approval-uat
-      plan-artifact-name: ${{ needs.plan.outputs.plan-artifact-name }}
-    secrets:
-      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+  uat:
+    name: 'Deploy to UAT'
+    uses: ./.github/workflows/deploy.template.yml

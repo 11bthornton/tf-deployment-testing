@@ -1,0 +1,15 @@
+name: Deploy Dev via Terraform
+
+on:
+  workflow_call:
+
+jobs:
+  deploy:
+    name: 'Deploy to Dev'
+    uses: ./.github/workflows/deploy.template.yml
+    with:
+      working_directory: ${{ inputs.working-directory || './infrastructure' }}
+      terraform_version: ${{ inputs.terraform_version || '1.9.8' }}
+      environment_code: 'dev'
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}

@@ -1,0 +1,9 @@
+name: Deploy UAT via Terraform
+
+on:
+  workflow_call:
+
+jobs:
+  deploy:
+    name: 'Deploy to UAT'
+    uses: ./.github/workflows/deploy.template.yml
