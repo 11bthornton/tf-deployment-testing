@@ -14,12 +14,9 @@ resource "azurerm_linux_web_app" "main" {
 
   site_config {
     always_on        = true
-    linux_fx_version = "DOTNET|8.0"
   }
 
-  app_settings = {
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
+
 
   tags = var.tags
 }
