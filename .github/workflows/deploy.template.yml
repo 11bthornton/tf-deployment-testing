@@ -74,3 +74,17 @@ jobs:
           working-directory: ${{ inputs.iac-config-directory }}
           plan-artifact-name: ${{ needs.plan.outputs.plan-artifact-name }}
           credentials: ${{ secrets.azure_service_connection }}
+
+      - name: Build Blazor WebAssembly with Oryx
+        uses: azure/appservice-build@v2
+        with:
+          platform: dotnet
+          platform-version: '8.0'                            # Change to match your .NET SDK version
+          package: 'src/BlazorApp1'                          # Path to the Blazor project
+          output-path: '${{ github.workspace }}/build-output' # Output folder to deploy
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: my-blazor-app-efghj
+          package: '${{ github.workspace }}/build-output'
