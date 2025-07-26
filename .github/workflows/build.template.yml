@@ -33,10 +33,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore NuGet packages
-        run: dotnet restore ${{ inputs.solution-directory-path }}
+        run: dotnet restore ${{ inputs.solution-directory-path }}*.sln
 
       - name: Build solution
-        run: dotnet build ${{ inputs.solution-directory-path }} --configuration Release --no-restore
+        run: dotnet build ${{ inputs.solution-directory-path }}*.sln --configuration Release --no-restore
 
       - name: Run tests and collect results
         run: |
