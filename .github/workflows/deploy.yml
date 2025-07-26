@@ -8,7 +8,7 @@ jobs:
     name: 'Dev'
     uses: ./.github/workflows/deploy.template.yml
     secrets:
-      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
   uat:
     needs: dev
