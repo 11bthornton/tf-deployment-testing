@@ -2,7 +2,7 @@ name: Terraform Plan
 
 on:
   workflow_dispatch:
-  
+
 permissions:
   issues: write
   contents: read
@@ -21,6 +21,18 @@ jobs:
           working-directory: infrastructure
           unique-suffix: dev
           credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - uses: ./.github/actions/manual-approval
+        with:
+          secret: ${{ github.token }}
+          approvers: 11bthornton
+          minimum-approvals: 1
+          issue-title: "Deploying v1.3.5 to prod from staging"
+          issue-body-file-path: .github/approvals/test.md
+          exclude-workflow-initiator-as-approver: false
+          fail-on-denial: true
+          additional-approved-words: ''
+          additional-denied-words: ''
 
       - name: Terraform Apply
         uses: ./.github/actions/terraform/apply

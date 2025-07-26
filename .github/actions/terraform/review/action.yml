@@ -1,0 +1,57 @@
+name: Manual Approval
+description: Composite action to create manual approval issue and wait for approval
+
+inputs:
+  secret:
+    description: GitHub token (usually github.token)
+    required: true
+  approvers:
+    description: Comma-separated list of approvers
+    required: true
+  minimum-approvals:
+    description: Number of approvals needed
+    required: true
+  issue-title:
+    description: Title of the approval issue
+    required: true
+  issue-body:
+    description: Body content of the approval issue (ignored if issue-body-file-path provided)
+    required: false
+    default: ''
+  issue-body-file-path:
+    description: Path to a markdown file with issue body content
+    required: false
+    default: ''
+  exclude-workflow-initiator-as-approver:
+    description: Whether to exclude the workflow initiator from approvers
+    required: false
+    default: 'false'
+  fail-on-denial:
+    description: Whether the workflow should fail if approval is denied
+    required: false
+    default: 'true'
+  additional-approved-words:
+    description: Additional words to trigger approval
+    required: false
+    default: ''
+  additional-denied-words:
+    description: Additional words to trigger denial
+    required: false
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Manual approval
+      uses: trstringer/manual-approval@v1
+      with:
+        secret: ${{ inputs.secret }}
+        approvers: ${{ inputs.approvers }}
+        minimum-approvals: ${{ inputs.minimum-approvals }}
+        issue-title: ${{ inputs.issue-title }}
+        issue-body: ${{ inputs.issue-body }}
+        issue-body-file-path: ${{ inputs.issue-body-file-path }}
+        exclude-workflow-initiator-as-approver: ${{ inputs.exclude-workflow-initiator-as-approver }}
+        fail-on-denial: ${{ inputs.fail-on-denial }}
+        additional-approved-words: ${{ inputs.additional-approved-words }}
+        additional-denied-words: ${{ inputs.additional-denied-words }}
