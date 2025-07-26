@@ -7,7 +7,7 @@ on:
 
 jobs:
   plan:
-    name: 'Plan'
+    name: 'TF'
     uses: ./.github/workflows/terraform-plan.template.yml
     with:
       working-directory: infrastructure
@@ -17,7 +17,7 @@ jobs:
       credentials: ${{ secrets.service_connection }}
 
   apply:
-    name: 'Apply'
+    name: 'TF'
     needs: plan
     uses: ./.github/workflows/terraform-apply.template.yml
     with:
