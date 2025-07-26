@@ -1,5 +1,6 @@
 name: Terraform Plan
 description: Run Terraform plan and upload artifact
+
 inputs:
   working-directory:
     required: true
@@ -18,6 +19,8 @@ outputs:
   plan-exit-code:
     description: Exit code from terraform plan (0=no changes, 1=error, 2=changes)
     value: ${{ steps.plan.outputs.exit-code }}
+
+runs:
   using: "composite"
   steps:
     - name: Checkout repository
@@ -51,34 +54,17 @@ outputs:
     - name: Terraform Plan
       id: plan
       run: |
-        # Run terraform plan and capture exit code
-        set +e  # Don't exit on non-zero exit codes
+        set +e
         terraform plan -out=tfplan.binary -input=false -detailed-exitcode
         PLAN_EXIT_CODE=$?
-        set -e  # Re-enable exit on error
-        
-        # Set the exit code as an output
+        set -e
         echo "exit-code=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
-        
-        # Generate human-readable plan regardless of exit code
         terraform show -no-color tfplan.binary > tfplan.txt
-        
-        # Log the exit code meaning
         case $PLAN_EXIT_CODE in
-          0)
-            echo "✅ No changes detected"
-            ;;
-          1)
-            echo "❌ Error occurred during planning"
-            exit 1
-            ;;
-          2)
-            echo "📝 Changes detected and planned"
-            ;;
-          *)
-            echo "⚠️ Unexpected exit code: $PLAN_EXIT_CODE"
-            exit $PLAN_EXIT_CODE
-            ;;
+          0) echo "No changes detected" ;;
+          1) echo "Error during plan"; exit 1 ;;
+          2) echo "Changes detected" ;;
+          *) echo "Unexpected exit code $PLAN_EXIT_CODE"; exit $PLAN_EXIT_CODE ;;
         esac
       shell: bash
       working-directory: ${{ inputs.working-directory }}
