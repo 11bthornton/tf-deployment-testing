@@ -11,7 +11,7 @@ terraform {
     resource_group_name  = "state"
     storage_account_name = "projectzterraformstate"
     container_name       = "projectztfstatecontainer"
-    key                  = "fnol.tfstate"
+    key                  = "sdfsdf.tfstate"
   }
 }
 
