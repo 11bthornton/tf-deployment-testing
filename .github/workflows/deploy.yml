@@ -7,7 +7,8 @@ jobs:
   deploy:
     uses: ./.github/workflows/terraform.yml
     with:
-      working-directory: infra
-      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      working-directory: infrastructure
       action: plan-apply   # or 'plan'
       environment: production
+    secrets:
+      credentials: ${{ secrets.AZURE_CREDENTIALS }}
