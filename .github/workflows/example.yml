@@ -14,6 +14,13 @@ jobs:
       - name: Run Terraform Plan
         uses: ./.github/actions/terraform/plan
         with:
-          working-directory: infrastructure/dev
+          working-directory: infrastructure
           unique-suffix: dev
+          credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Terraform Apply
+        uses: ./.github/actions/terraform-apply
+        with:
+          working-directory: infrastructure/dev
+          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
           credentials: ${{ secrets.AZURE_CREDENTIALS }}

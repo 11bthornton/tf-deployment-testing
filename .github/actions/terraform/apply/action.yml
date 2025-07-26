@@ -1,0 +1,50 @@
+name: Terraform Apply
+description: Download and apply Terraform plan
+
+inputs:
+  working-directory:
+    required: true
+    description: Path to the Terraform project
+  plan-artifact-name:
+    required: true
+    description: Name of the uploaded Terraform plan artifact to download
+  credentials:
+    required: true
+    description: Azure credentials JSON
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.6
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ inputs.credentials }}
+
+    - name: Download Plan Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.plan-artifact-name }}
+        path: ${{ inputs.working-directory }}
+
+    - name: Terraform Init
+      run: terraform init
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Terraform Validate
+      run: terraform validate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve tfplan.binary
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
