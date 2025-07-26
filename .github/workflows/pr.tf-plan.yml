@@ -2,9 +2,8 @@ name: (pull request) pr.tf-plan.yml
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
-  branches:
-    - main
+    branches:
+      - main
 
 permissions:
   issues: write
