@@ -16,7 +16,7 @@ resource "azurerm_resource_group" "sdfsdf" {
 
 
 resource "azurerm_resource_group" "ssf" {
-  name     = "athirdosdfssssddfxsssfsdfne"
+  name     = "athirdosdfssssddddddfxsssfsdfne"
   location = var.location
 
   tags = var.tags
