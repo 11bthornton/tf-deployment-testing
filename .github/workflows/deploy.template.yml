@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   plan:
-    environment: terraform_plan_review
+    environment: ${{ inputs.github-environment }}
     name: 'Plan'
     runs-on: ubuntu-latest
 
@@ -52,7 +52,7 @@ jobs:
 
   deploy:
     needs: plan
-    environment: ${{ inputs.github-environment }}
+    environment: terraform_plan_review # Plans must be reviewed before applying
     name: 'Deploy'
     runs-on: ubuntu-latest
 
