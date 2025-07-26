@@ -17,9 +17,35 @@ jobs:
     secrets:
       azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
+  production_gate:
+    name: 'Production Gate'
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get version number
+        id: get_version
+        run: |
+          # Example: derive version from tag or date or file
+          VERSION="v1.2.3"  
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # - name: Create Git tag for version
+      #   run: |
+      #     git config user.name "github-actions"
+      #     git config user.email "actions@github.com"
+      #     git tag ${{ steps.get_version.outputs.version }}
+      #     git push origin ${{ steps.get_version.outputs.version }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   deploy-prod:
     name: 'Prod'
-    needs: deploy-dev
+    needs: [deploy-dev, production_gate]
     uses: ./.github/workflows/deploy.template.yml
     with:
       github-environment: prod
