@@ -7,3 +7,5 @@ jobs:
   deploy:
     name: 'UAT'
     uses: ./.github/workflows/deploy.template.yml
+    secrets:
+      azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}

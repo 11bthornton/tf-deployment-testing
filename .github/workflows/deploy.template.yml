@@ -1,10 +1,13 @@
 name: Deploy Template
 on:
   workflow_call:
+    secrets:
+      azure_credentials:
+        description: 'Azure credentials for Terraform deployment'
 
 jobs:
   plan:
-    name: 'FNOL - Web'
+    name: 'Plan'
     uses: ./.github/workflows/terraform-plan.template.yml
     with:
       working-directory: infrastructure
@@ -14,7 +17,7 @@ jobs:
       credentials: ${{ secrets.AZURE_CREDENTIALS }}
 
   apply:
-    name: 'FNOL - Web'
+    name: 'Apply'
     needs: plan
     uses: ./.github/workflows/terraform-apply.template.yml
     with:
