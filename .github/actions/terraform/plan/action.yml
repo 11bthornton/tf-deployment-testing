@@ -59,7 +59,6 @@ runs:
         terraform refresh
         terraform plan -out=tfplan.binary -input=false -detailed-exitcode
         PLAN_EXIT_CODE=$?
-        echo "Terraform plan exit code: $PLAN_EXIT_CODE"
         set -e
         echo "exit-code=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
         terraform show -no-color tfplan.binary > tfplan.txt
@@ -76,6 +75,16 @@ runs:
         ARM_CLIENT_SECRET: ${{ fromJson(inputs.credentials).clientSecret }}
         ARM_TENANT_ID: ${{ fromJson(inputs.credentials).tenantId }}
         ARM_SUBSCRIPTION_ID: ${{ fromJson(inputs.credentials).subscriptionId }}
+
+    - name: Output Plan to Summary
+      run: |
+        echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`terraform" >> $GITHUB_STEP_SUMMARY
+        cat tfplan.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Upload Plan Artifact
       uses: actions/upload-artifact@v4
