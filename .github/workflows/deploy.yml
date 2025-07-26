@@ -6,13 +6,13 @@ on:
 jobs:
   dev:
     name: 'Dev'
-    uses: ./.github/workflows/deploy.template.yml
+    uses: ./.github/workflows/deploy.template.yml@main
     secrets:
       service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
   uat:
     needs: dev
     name: 'UAT'
-    uses: ./.github/workflows/deploy.template.yml
+    uses: ./.github/workflows/deploy.template.yml@main
     secrets:
       service_connection: ${{ secrets.AZURE_CREDENTIALS }}
