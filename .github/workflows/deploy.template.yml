@@ -85,7 +85,7 @@ jobs:
 
       - name: Publish Blazor WASM App
         run: |
-          dotnet publish src/BlazorApp1/BlazorApp1.csproj \
+          dotnet publish src/BlazorApp1/BlazorApp1/BlazorApp1.csproj \
             --configuration Release \
             --output publish
 
