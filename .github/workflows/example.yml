@@ -28,6 +28,7 @@ jobs:
         with:
           secret: ${{ github.token }}
           approvers: 11bthornton
+          working-directory: infrastructure
           minimum-approvals: 1
           issue-title: "Deploying v1.3.5 to prod from staging"
           issue-body-file-path: .github/approvals/test.md
@@ -40,6 +41,6 @@ jobs:
       - name: Terraform Apply
         uses: ./.github/actions/terraform/apply
         with:
-          working-directory: infrastructure/dev
+          working-directory: infrastructure
           plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
           credentials: ${{ secrets.AZURE_CREDENTIALS }}
