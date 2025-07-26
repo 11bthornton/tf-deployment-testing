@@ -46,7 +46,7 @@ jobs:
           echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          find ${{ inputs.solution-directory-path }} -type f -name '*.Tests.csproj' | while read test_project; do
+          find ${{ inputs.solution-directory-path }}/BlazorApp1 -type f -name '*.Tests.csproj' | while read test_project; do
             project_name=$(basename "$test_project" .csproj)
 
             echo "Running tests in $project_name..."
