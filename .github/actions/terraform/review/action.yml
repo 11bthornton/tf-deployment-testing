@@ -36,8 +36,7 @@ inputs:
     default: ''
   plan-artifact-name:
     description: Name of the artifact containing the Terraform plan file
-    required: false
-    default: ''
+    required: true
   working-directory:
     description: Working directory where Terraform commands should be run
     required: false
@@ -70,7 +69,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        PLAN_FILE=$(find . -name "*.tfplan" -type f | head -1)
+        PLAN_FILE=$(find . -name "tfplan.binary" -type f | head -1)
         echo "Plan file found: $PLAN_FILE"
 
         if [ -n "$PLAN_FILE" ]; then
