@@ -29,7 +29,7 @@ jobs:
         uses: ./.github/actions/terraform/review
         with:
           secret: ${{ github.token }}
-          approvers: 11bthornton
+          approvers: ${{ github.actor }}
           working-directory: infrastructure
           minimum-approvals: 1
           issue-title: "Deploying v1.3.5 to prod from staging"
