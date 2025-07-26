@@ -1,4 +1,4 @@
-name: Deploy via Terraform
+name: Main Deploy
 
 on:
   workflow_dispatch:
@@ -9,5 +9,6 @@ jobs:
     uses: ./.github/workflows/deploy.template.yml
 
   uat:
+    needs: dev
     name: 'Deploy to UAT'
     uses: ./.github/workflows/deploy.template.yml
