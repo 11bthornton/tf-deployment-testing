@@ -31,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       plan-artifact-name: ${{ steps.plan.outputs.plan-artifact-name }}
+      has-changes: ${{ steps.plan.outputs.plan-exit-code == '2' && 'true' || 'false' }}
 
     steps:
       - name: Checkout repository
@@ -54,7 +55,7 @@ jobs:
 
   deploy:
     needs: plan
-    environment: terraform_plan_review # Plans must be reviewed before applying
+    environment: ${{ steps.plan.outputs.has-changes == 'true' && 'terraform_plan_review' || '' }}
     name: 'Apply + Deploy'
     runs-on: ubuntu-latest
 
