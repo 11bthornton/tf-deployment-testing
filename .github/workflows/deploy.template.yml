@@ -64,28 +64,33 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Terraform Plan Artifact
+        if: needs.plan.outputs.has-changes == 'true'
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.plan.outputs.plan-artifact-name }}
           path: ./tfplan-artifact
 
       - name: Terraform Apply
+        if: needs.plan.outputs.has-changes == 'true'
         uses: ./.github/actions/terraform/apply
         with:
           working-directory: ${{ inputs.iac-config-directory }}
           plan-artifact-name: ${{ needs.plan.outputs.plan-artifact-name }}
           credentials: ${{ secrets.azure_service_connection }}
 
-      - name: Build Blazor WebAssembly with Oryx
-        uses: azure/appservice-build@v2
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
-          platform: dotnet
-          platform-version: '8.0'                            # Change to match your .NET SDK version
-          package: 'src/BlazorApp1/BlazorApp1'                          # Path to the Blazor project
-          output-path: './build-output' # Output folder to deploy
+          dotnet-version: '8.0.x'
+
+      - name: Publish Blazor WASM App
+        run: |
+          dotnet publish src/BlazorApp1/BlazorApp1.csproj \
+            --configuration Release \
+            --output publish
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: my-blazor-app-efghj
-          package: './build-output'
+          package: publish
