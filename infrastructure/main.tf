@@ -12,10 +12,12 @@ resource "azurerm_linux_web_app" "main" {
   resource_group_name = azurerm_resource_group.main.name
   service_plan_id     = azurerm_app_service_plan.main.id
 
-  site_config {
-    always_on        = true
+ site_config {
+  always_on = true
+  application_stack {
+    dotnet_version = "8.0"
   }
-
+}
 
 
   tags = var.tags
