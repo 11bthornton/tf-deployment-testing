@@ -8,13 +8,14 @@ on:
 permissions:
   issues: write
   contents: read
+  pull-requests: write
+  actions: read
 
 jobs:
   tf-plan:
     name: 'Terraform Plan'
     uses: ./.github/actions/terraform/plan
     with:
-      github-environment: uat
-      environment: uat
-    secrets:
-      azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
+      working-directory: ./infrastructure
+      unique-suffix: uat
+      credentials: ${{ secrets.AZURE_CREDENTIALS }}

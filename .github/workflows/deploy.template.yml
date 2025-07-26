@@ -53,7 +53,7 @@ jobs:
   deploy:
     needs: plan
     environment: terraform_plan_review # Plans must be reviewed before applying
-    name: 'Deploy'
+    name: 'Apply + Deploy'
     runs-on: ubuntu-latest
 
     steps:
