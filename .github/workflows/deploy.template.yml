@@ -25,6 +25,8 @@ jobs:
     environment: ${{ inputs.github-environment }}
     name: 'Plan'
     runs-on: ubuntu-latest
+    outputs:
+      plan-artifact-name: ${{ steps.plan.outputs.plan-artifact-name }}
 
     steps:
       - name: Checkout repository
@@ -38,16 +40,12 @@ jobs:
           unique-suffix: ${{ inputs.environment }}
           credentials: ${{ secrets.azure_service_connection }}
 
-      - name: Download Terraform Plan Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
-          path: ./tfplan-artifact
-
       - name: Output Terraform Plan to Summary
         run: |
           echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
-          head -20 ./tfplan-artifact/tfplan.txt >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```terraform' >> $GITHUB_STEP_SUMMARY
+          cat infrastructure/tfplan.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   deploy:
@@ -63,18 +61,12 @@ jobs:
       - name: Download Terraform Plan Artifact
         uses: actions/download-artifact@v4
         with:
-          name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
+          name: ${{ needs.plan.outputs.plan-artifact-name }}
           path: ./tfplan-artifact
-
-      - name: Output Terraform Plan to Summary
-        run: |
-          echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
-          head -20 ./tfplan-artifact/tfplan.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Terraform Apply
         uses: ./.github/actions/terraform/apply
         with:
           working-directory: infrastructure
-          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
+          plan-artifact-name: ${{ needs.plan.outputs.plan-artifact-name }}
           credentials: ${{ secrets.azure_service_connection }}
