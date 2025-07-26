@@ -1,0 +1,19 @@
+name: Build Web Application
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.template.yml
+    with:
+      solution-directory-path: 'src/BlazorApp1'
+      project-path: 'src/BlazorApp1/BlazorApp1.csproj'

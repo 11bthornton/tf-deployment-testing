@@ -1,0 +1,63 @@
+name: (template) build dotnet solution - build.template.yml
+
+on:
+  workflow_call:
+    inputs:
+      solution-directory-path:
+        required: true
+        type: string
+        description: Path to the folder containing the .sln file
+
+      project-path:
+        required: false
+        type: string
+        description: Path to the .csproj file to pack or publish
+
+      enable-publish:
+        required: false
+        type: boolean
+        default: true   # Publish is now enabled by default
+        description: Whether to run dotnet publish on the specified project
+
+jobs:
+  build:
+    name: Build .NET Solution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore NuGet packages
+        run: dotnet restore ${{ inputs.solution-directory-path }}
+
+      - name: Build solution
+        run: dotnet build ${{ inputs.solution-directory-path }} --configuration Release --no-restore
+
+      - name: Run tests for all *.Tests.csproj
+        run: |
+          find ${{ inputs.solution-directory-path }} -type f -name '*.Tests.csproj' | while read test_project; do
+            echo "Running tests in $test_project"
+            dotnet test "$test_project" --configuration Release --no-build --verbosity normal
+          done
+
+      - name: Set short SHA
+        if: inputs.enable-pack && inputs.project-path != ''
+        id: vars
+        run: echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Upload NuGet Package Artifact
+        if: inputs.enable-pack && inputs.project-path != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package-${{ steps.vars.outputs.short_sha }}
+          path: ./artifacts
+
+      - name: Publish application
+        if: inputs.enable-publish && inputs.project-path != ''
+        run: dotnet publish ${{ inputs.project-path }} --configuration Release --no-build --output ./publish
