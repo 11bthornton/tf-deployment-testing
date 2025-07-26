@@ -119,7 +119,7 @@ runs:
         approvers: ${{ inputs.approvers }}
         minimum-approvals: ${{ inputs.minimum-approvals }}
         issue-title: ${{ inputs.issue-title }}
-        issue-body-file-path: ${{ env.ISSUE_BODY_FILE_PATH }}
+        issue-body-file-path: .github/approvals/_temp-combined-body.md
         exclude-workflow-initiator-as-approver: ${{ inputs.exclude-workflow-initiator-as-approver }}
         fail-on-denial: ${{ inputs.fail-on-denial }}
         additional-approved-words: ${{ inputs.additional-approved-words }}
