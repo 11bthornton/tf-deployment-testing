@@ -38,11 +38,30 @@ jobs:
       - name: Build solution
         run: dotnet build ${{ inputs.solution-directory-path }} --configuration Release --no-restore
 
-      - name: Run tests for all *.Tests.csproj
+      - name: Run tests and collect results
         run: |
+          RESULTS_DIR="./test-results"
+          mkdir -p "$RESULTS_DIR"
+
+          echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           find ${{ inputs.solution-directory-path }} -type f -name '*.Tests.csproj' | while read test_project; do
-            echo "Running tests in $test_project"
-            dotnet test "$test_project" --configuration Release --no-build --verbosity normal
+            project_name=$(basename "$test_project" .csproj)
+
+            echo "Running tests in $project_name..."
+            dotnet test "$test_project" \
+              --configuration Release \
+              --no-build \
+              --logger:"trx;LogFileName=${project_name}.trx" \
+              --results-directory "$RESULTS_DIR"
+
+            passed=$(grep -oPm1 '(?<=passed=")\d+' "$RESULTS_DIR/${project_name}.trx" || echo 0)
+            failed=$(grep -oPm1 '(?<=failed=")\d+' "$RESULTS_DIR/${project_name}.trx" || echo 0)
+            skipped=$(grep -oPm1 '(?<=skipped=")\d+' "$RESULTS_DIR/${project_name}.trx" || echo 0)
+            total=$((passed + failed + skipped))
+
+            echo "- **$project_name**: $passed passed, $failed failed, $skipped skipped (total: $total)" >> $GITHUB_STEP_SUMMARY
           done
 
       - name: Set short SHA
