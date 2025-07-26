@@ -1,6 +1,9 @@
 name: Deploy Template
 on:
   workflow_call:
+    secrets:
+      service_connection:
+        description: 'Azure credentials for Terraform deployment'
 
 jobs:
   plan:
@@ -11,7 +14,7 @@ jobs:
       environment: approval-uat
       unique-suffix: 'example-suffix'
     secrets:
-      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      credentials: ${{ secrets.service_connection }}
 
   apply:
     name: 'Apply'
@@ -22,4 +25,4 @@ jobs:
       environment: approval-uat
       plan-artifact-name: ${{ needs.plan.outputs.plan-artifact-name }}
     secrets:
-      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      credentials: ${{ secrets.service_connection }}
