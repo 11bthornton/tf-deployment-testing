@@ -14,8 +14,13 @@ permissions:
 jobs:
   tf-plan:
     name: 'Terraform Plan'
-    uses: ./.github/actions/terraform/plan
-    with:
-      working-directory: ./infrastructure
-      unique-suffix: uat
-      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Terraform Plan
+        uses: ./.github/actions/terraform/plan
+        with:
+          working-directory: ./infrastructure
+          unique-suffix: uat
+          credentials: ${{ secrets.AZURE_CREDENTIALS }}

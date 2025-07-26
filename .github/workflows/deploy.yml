@@ -29,7 +29,6 @@ jobs:
 
       - name: Display Release Notes
         run: |
-          echo "## Release Notes" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ -f "release-notes.md" ]; then
             cat release-notes.md >> $GITHUB_STEP_SUMMARY
