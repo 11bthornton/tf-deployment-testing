@@ -55,7 +55,7 @@ jobs:
 
   deploy:
     needs: plan
-    environment: ${{ steps.plan.outputs.has-changes == 'true' && 'terraform_plan_review' || '' }}
+    environment: ${{ needs.plan.outputs.has-changes == 'true' && 'terraform_plan_review' || '' }}
     name: 'Apply + Deploy'
     runs-on: ubuntu-latest
 
