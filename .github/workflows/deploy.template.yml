@@ -21,9 +21,9 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  plan:
     environment: ${{ inputs.github-environment }}
-    name: 'Deploy'
+    name: 'Plan'
     runs-on: ubuntu-latest
 
     steps:
@@ -38,6 +38,16 @@ jobs:
           unique-suffix: ${{ inputs.environment }}
           credentials: ${{ secrets.azure_service_connection }}
 
+  deploy:
+    needs: plan
+    environment: ${{ inputs.github-environment }}
+    name: 'Deploy'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download Terraform Plan Artifact
         uses: actions/download-artifact@v4
         with:
@@ -49,22 +59,6 @@ jobs:
           echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
           head -20 ./tfplan-artifact/tfplan.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-
-      - name: Manual approval
-        if: steps.plan.outputs.plan-exit-code == '2'
-        uses: ./.github/actions/terraform/review
-        with:
-          secret: ${{ github.token }}
-          approvers: ${{ github.actor }}
-          working-directory: infrastructure
-          minimum-approvals: 1
-          issue-title: "Review Terraform Plan for Deployment - ${{ inputs.environment }} - ${{ github.ref_name }}"
-          issue-body-file-path: .github/approvals/test.md
-          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
-          exclude-workflow-initiator-as-approver: false
-          fail-on-denial: true
-          additional-approved-words: ''
-          additional-denied-words: ''
 
       - name: Terraform Apply
         uses: ./.github/actions/terraform/apply
