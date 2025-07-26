@@ -18,7 +18,7 @@ on:
 
 jobs:
   terraform-apply:
-    name: TF Apply
+    name: Apply
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment }}

@@ -23,7 +23,7 @@ on:
 
 jobs:
   terraform-plan:
-    name: TF Plan
+    name: Plan
     runs-on: ubuntu-latest
     defaults:
       run:
