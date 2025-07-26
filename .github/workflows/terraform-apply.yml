@@ -1,0 +1,53 @@
+name: Terraform Apply Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      plan-artifact-name:
+        required: true
+        type: string
+    secrets:
+      credentials:
+        required: true
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.plan-artifact-name }}
+          path: ${{ inputs.working-directory }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ inputs.credentials }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -input=false tfplan.binary

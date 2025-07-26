@@ -4,11 +4,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    uses: ./.github/workflows/terraform.yml
+  plan:
+    uses: ./.github/workflows/terraform-plan.yml
     with:
       working-directory: infrastructure
-      action: plan-apply   # or 'plan'
       environment: production
+    secrets:
+      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+  apply:
+    needs: plan
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      working-directory: infrastructure
+      environment: production
+      plan-artifact-name: ${{ needs.plan.outputs.plan-artifact-name }}
     secrets:
       credentials: ${{ secrets.AZURE_CREDENTIALS }}
