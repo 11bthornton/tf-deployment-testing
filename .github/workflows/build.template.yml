@@ -3,7 +3,7 @@ name: (template) build dotnet solution - build.template.yml
 on:
   workflow_call:
     inputs:
-      solution-directory-path:
+      solution-path:
         required: true
         type: string
         description: Path to the folder containing the .sln file
@@ -33,10 +33,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore NuGet packages
-        run: dotnet restore ${{ inputs.solution-directory-path }}*.sln
+        run: dotnet restore ${{ inputs.solution-path }}
 
       - name: Build solution
-        run: dotnet build ${{ inputs.solution-directory-path }}*.sln --configuration Release --no-restore
+        run: dotnet build ${{ inputs.solution-path }} --configuration Release --no-restore
 
       - name: Run tests and collect results
         run: |
@@ -46,7 +46,7 @@ jobs:
           echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          find src/BlazorApp1 -type f -name '*.Tests.csproj' | while read test_project; do
+          find ${{ inputs.project-path }}/.. -type f -name '*.Tests.csproj' | while read test_project; do
             project_name=$(basename "$test_project" .csproj)
 
             echo "Running tests in $project_name..."
