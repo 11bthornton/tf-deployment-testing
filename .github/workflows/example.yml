@@ -30,17 +30,11 @@ jobs:
           name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
           path: ./tfplan-artifact
 
-      - name: Output Terraform Plan to Summary
+      - name: Add Plan to Job Summary
+        if: always()
         run: |
-          echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
-          echo '' >> $GITHUB_STEP_SUMMARY
-          echo '```terraform' >> $GITHUB_STEP_SUMMARY
-          echo "Listing files in the artifact directory:" >> $GITHUB_STEP_SUMMARY
-          ls -l ./tfplan-artifact >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "First 20 lines of tfplan.txt:" >> $GITHUB_STEP_SUMMARY
-          head -20 ./tfplan-artifact/tfplan.txt >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Terraform Plan" >> $GITHUB_STEP_SUMMARY
+
 
       - name: Manual approval
         if: steps.plan.outputs.plan-exit-code == '2'
