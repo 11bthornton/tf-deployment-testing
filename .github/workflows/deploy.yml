@@ -1,0 +1,13 @@
+name: Deploy via Terraform
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/terraform.yml
+    with:
+      working-directory: infra
+      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      action: plan-apply   # or 'plan'
+      environment: production

@@ -1,0 +1,87 @@
+name: Terraform Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: true
+        type: string
+      credentials:
+        required: true
+        type: string
+      action:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+
+jobs:
+  terraform:
+    name: Terraform ${{ inputs.action }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ inputs.credentials }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -out=tfplan.binary -input=false
+          terraform show -no-color tfplan.binary > tfplan.txt
+
+      - name: Upload Plan Artifact
+        if: ${{ inputs.action == 'plan-apply' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: |
+            ${{ inputs.working-directory }}/tfplan.txt
+            ${{ inputs.working-directory }}/tfplan.binary
+
+  approve-and-apply:
+    if: ${{ inputs.action == 'plan-apply' }}
+    needs: terraform
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ inputs.working-directory }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ inputs.credentials }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Apply
+        run: terraform apply -input=false tfplan.binary
+        working-directory: ${{ inputs.working-directory }}
