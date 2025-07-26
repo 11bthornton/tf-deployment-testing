@@ -110,6 +110,7 @@ runs:
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Debug output from format_body step
+      shell: bash
       run: |
         echo "Output body from format_body step:"
         echo "${{ steps.format_body.outputs.body }}"
