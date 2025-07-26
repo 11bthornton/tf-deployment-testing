@@ -38,6 +38,11 @@ runs:
       run: terraform init
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        ARM_CLIENT_ID: ${{ fromJson(inputs.credentials).clientId }}
+        ARM_CLIENT_SECRET: ${{ fromJson(inputs.credentials).clientSecret }}
+        ARM_TENANT_ID: ${{ fromJson(inputs.credentials).tenantId }}
+        ARM_SUBSCRIPTION_ID: ${{ fromJson(inputs.credentials).subscriptionId }}
 
     - name: Terraform Validate
       run: terraform validate
@@ -48,3 +53,8 @@ runs:
       run: terraform apply -auto-approve tfplan.binary
       shell: bash
       working-directory: ${{ inputs.working-directory }}
+      env:
+        ARM_CLIENT_ID: ${{ fromJson(inputs.credentials).clientId }}
+        ARM_CLIENT_SECRET: ${{ fromJson(inputs.credentials).clientSecret }}
+        ARM_TENANT_ID: ${{ fromJson(inputs.credentials).tenantId }}
+        ARM_SUBSCRIPTION_ID: ${{ fromJson(inputs.credentials).subscriptionId }}
