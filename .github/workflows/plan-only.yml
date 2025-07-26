@@ -1,4 +1,4 @@
-name: Plan Only - Terraform
+name: Terraform Plan for PR
 
 on:
   pull_request:
@@ -6,7 +6,6 @@ on:
       - 'infrastructure/**'
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   plan:
