@@ -8,7 +8,7 @@ on:
 jobs:
   plan:
     name: 'TF'
-    uses: ./.github/actions/terraform-plan
+    uses: ./.github/actions/terraform/terraform-plan
     with:
       working-directory: infrastructure/dev
       unique-suffix: dev
