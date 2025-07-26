@@ -33,7 +33,8 @@ jobs:
       - name: Add Plan to Job Summary
         if: always()
         run: |
-          echo "## 🚀 Terraform Plan" >> $GITHUB_STEP_SUMMARY
+          set -x
+          echo "## Hello world! Terraform Plan" >> $GITHUB_STEP_SUMMARY
 
 
       - name: Manual approval
