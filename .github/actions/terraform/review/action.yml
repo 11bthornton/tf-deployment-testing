@@ -38,10 +38,86 @@ inputs:
     description: Additional words to trigger denial
     required: false
     default: ''
+  plan-artifact-name:
+    description: Name of the artifact containing the Terraform plan file
+    required: false
+    default: ''
+  working-directory:
+    description: Working directory where Terraform commands should be run
+    required: false
+    default: '.'
 
 runs:
   using: "composite"
   steps:
+    - name: Setup Terraform
+      if: ${{ inputs.plan-artifact-name != '' }}
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_wrapper: false
+
+    - name: Download plan artifact
+      if: ${{ inputs.plan-artifact-name != '' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.plan-artifact-name }}
+        path: ${{ inputs.working-directory }}
+
+    - name: Extract plan content
+      if: ${{ inputs.plan-artifact-name != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        # Find the .tfplan file
+        PLAN_FILE=$(find . -name "*.tfplan" -type f | head -1)
+        
+        if [ -n "$PLAN_FILE" ]; then
+          echo "Found plan file: $PLAN_FILE"
+          # Convert binary plan to human-readable format
+          terraform show -no-color "$PLAN_FILE" > terraform-plan-output.txt
+          
+          # Read the plan content and set it as an environment variable
+          {
+            echo "TERRAFORM_PLAN_CONTENT<<EOF"
+            cat terraform-plan-output.txt
+            echo "EOF"
+          } >> $GITHUB_ENV
+        else
+          echo "No .tfplan file found in artifact"
+          echo "TERRAFORM_PLAN_CONTENT=" >> $GITHUB_ENV
+        fi
+
+    - name: Prepare issue body
+      shell: bash
+      run: |
+        # Create a temporary file for the issue body
+        TEMP_FILE=$(mktemp)
+        
+        # Add the original issue body if it exists
+        if [ -n "${{ inputs.issue-body }}" ]; then
+          echo "${{ inputs.issue-body }}" > "$TEMP_FILE"
+          echo "" >> "$TEMP_FILE"
+        fi
+        
+        # Add the terraform plan if it exists
+        if [ -n "${TERRAFORM_PLAN_CONTENT:-}" ]; then
+          echo "## Terraform Plan" >> "$TEMP_FILE"
+          echo "" >> "$TEMP_FILE"
+          echo '```hcl' >> "$TEMP_FILE"
+          echo "$TERRAFORM_PLAN_CONTENT" >> "$TEMP_FILE"
+          echo '```' >> "$TEMP_FILE"
+        fi
+        
+        # Set the formatted body as an environment variable
+        {
+          echo "FORMATTED_ISSUE_BODY<<BODY_EOF"
+          cat "$TEMP_FILE"
+          echo "BODY_EOF"
+        } >> $GITHUB_ENV
+        
+        # Clean up
+        rm -f "$TEMP_FILE"
+
     - name: Manual approval
       uses: trstringer/manual-approval@v1
       with:
@@ -49,7 +125,7 @@ runs:
         approvers: ${{ inputs.approvers }}
         minimum-approvals: ${{ inputs.minimum-approvals }}
         issue-title: ${{ inputs.issue-title }}
-        issue-body: ${{ inputs.issue-body }}
+        issue-body: ${{ env.FORMATTED_ISSUE_BODY }}
         issue-body-file-path: ${{ inputs.issue-body-file-path }}
         exclude-workflow-initiator-as-approver: ${{ inputs.exclude-workflow-initiator-as-approver }}
         fail-on-denial: ${{ inputs.fail-on-denial }}

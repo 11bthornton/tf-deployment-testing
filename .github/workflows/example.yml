@@ -1,4 +1,4 @@
-name: Terraform Plan
+name: Deploy
 
 on:
   workflow_dispatch:
@@ -22,7 +22,8 @@ jobs:
           unique-suffix: dev
           credentials: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - uses: ./.github/actions/terraform/review
+      - name: Manual approval
+        uses: ./.github/actions/terraform/review
         with:
           secret: ${{ github.token }}
           approvers: 11bthornton
