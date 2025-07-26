@@ -10,18 +10,21 @@ permissions:
 jobs:
   deploy-dev:
     name: 'Dev'
-    uses: ./.github/workflows/dev.template.yml
+    uses: ./.github/workflows/deploy.template.yml
+    with:
+      github-environment: dev
+      environment: dev
+    secrets:
+      azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
-  deploy-uat:
-    if: github.ref_name == 'main'
-    name: 'UAT'
-    needs: deploy-dev
-    uses: ./.github/workflows/uat.template.yml
-  
   deploy-prod:
-    if: github.ref_name == 'main'
     name: 'Prod'
-    needs: [deploy-dev, deploy-uat]
-    uses: ./.github/workflows/prod.template.yml
+    needs: deploy-dev
+    uses: ./.github/workflows/deploy.template.yml
+    with:
+      github-environment: prod
+      environment: prod
+    secrets:
+      azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
     
