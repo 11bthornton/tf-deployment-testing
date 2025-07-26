@@ -13,13 +13,14 @@ jobs:
     uses: ./.github/workflows/deploy.template.yml
     with:
       working-directory: infrastructure
-      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
   deploy-prod:
     name: 'Deploy Prod'
+    needs: deploy-dev
     uses: ./.github/workflows/deploy.template.yml
     with:
       working-directory: infrastructure
-      credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
     
