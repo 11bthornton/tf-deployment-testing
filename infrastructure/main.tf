@@ -13,7 +13,8 @@ resource "azurerm_linux_web_app" "main" {
   service_plan_id     = azurerm_app_service_plan.main.id
 
   site_config {
-    always_on = true
+    always_on        = true
+    linux_fx_version = "DOTNET|8.0"
   }
 
   app_settings = {
