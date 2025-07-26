@@ -6,9 +6,6 @@ on:
       working-directory:
         required: true
         type: string
-      credentials:
-        required: true
-        type: string
       action:
         required: true
         type: string
