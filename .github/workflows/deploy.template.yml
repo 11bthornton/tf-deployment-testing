@@ -33,13 +33,13 @@ jobs:
         uses: ./.github/actions/terraform/plan
         with:
           working-directory: infrastructure
-          unique-suffix: dev
+          unique-suffix: ${{ inputs.environment }}
           credentials: ${{ secrets.azure_service_connection }}
 
       - name: Download Terraform Plan Artifact
         uses: actions/download-artifact@v4
         with:
-          name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
+          name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
           path: ./tfplan-artifact
 
       - name: Output Terraform Plan to Summary
@@ -59,7 +59,7 @@ jobs:
           minimum-approvals: 1
           issue-title: "Deploying v1.3.5 to prod from staging"
           issue-body-file-path: .github/approvals/test.md
-          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
+          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
           exclude-workflow-initiator-as-approver: false
           fail-on-denial: true
           additional-approved-words: ''
@@ -69,5 +69,5 @@ jobs:
         uses: ./.github/actions/terraform/apply
         with:
           working-directory: infrastructure
-          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
+          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
           credentials: ${{ secrets.azure_service_connection }}
