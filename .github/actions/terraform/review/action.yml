@@ -15,11 +15,7 @@ inputs:
     description: Title of the approval issue
     required: true
   issue-body:
-    description: Body content of the approval issue (ignored if issue-body-file-path provided)
-    required: false
-    default: ''
-  issue-body-file-path:
-    description: Path to a markdown file with issue body content
+    description: Body content of the approval issue
     required: false
     default: ''
   exclude-workflow-initiator-as-approver:
@@ -69,43 +65,33 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         PLAN_FILE=$(find . -name "*.tfplan" -type f | head -1)
-        
-        if [ -n "$PLAN_FILE" ]; then
-          echo "Found plan file: $PLAN_FILE"
-          terraform show -no-color "$PLAN_FILE" > terraform-plan-output.txt
 
+        if [ -n "$PLAN_FILE" ]; then
+          terraform show -no-color "$PLAN_FILE" > terraform-plan-output.txt
           {
             echo "TERRAFORM_PLAN_CONTENT<<EOF"
             cat terraform-plan-output.txt
             echo "EOF"
           } >> $GITHUB_ENV
         else
-          echo "No .tfplan file found in artifact"
           echo "TERRAFORM_PLAN_CONTENT=" >> $GITHUB_ENV
         fi
 
-    - name: Prepare issue body
+    - name: Format issue body
       shell: bash
       run: |
-        mkdir -p .github/approvals
-        TEMP_FILE=".github/approvals/_temp-combined-body.md"
-        
-        # Start with the provided issue body if present
-        if [ -n "${{ inputs.issue-body }}" ]; then
-          echo "${{ inputs.issue-body }}" > "$TEMP_FILE"
-          echo "" >> "$TEMP_FILE"
-        fi
+        BODY="${{ inputs.issue-body }}"
 
-        # Add the Terraform plan if it exists
         if [ -n "${TERRAFORM_PLAN_CONTENT:-}" ]; then
-          echo "## Terraform Plan" >> "$TEMP_FILE"
-          echo "" >> "$TEMP_FILE"
-          echo '```hcl' >> "$TEMP_FILE"
-          echo "$TERRAFORM_PLAN_CONTENT" >> "$TEMP_FILE"
-          echo '```' >> "$TEMP_FILE"
+          PLAN_SECTION="## Terraform Plan\n\n\`\`\`hcl\n${TERRAFORM_PLAN_CONTENT}\n\`\`\`"
+          BODY="${BODY}\n\n${PLAN_SECTION}"
         fi
 
-        echo "ISSUE_BODY_FILE_PATH=$TEMP_FILE" >> $GITHUB_ENV
+        {
+          echo "FORMATTED_ISSUE_BODY<<EOF"
+          echo -e "$BODY"
+          echo "EOF"
+        } >> $GITHUB_ENV
 
     - name: Manual approval
       uses: trstringer/manual-approval@v1
@@ -114,7 +100,7 @@ runs:
         approvers: ${{ inputs.approvers }}
         minimum-approvals: ${{ inputs.minimum-approvals }}
         issue-title: ${{ inputs.issue-title }}
-        issue-body-file-path: .github/approvals/_temp-combined-body.md
+        issue-body: ${{ env.FORMATTED_ISSUE_BODY }}
         exclude-workflow-initiator-as-approver: ${{ inputs.exclude-workflow-initiator-as-approver }}
         fail-on-denial: ${{ inputs.fail-on-denial }}
         additional-approved-words: ${{ inputs.additional-approved-words }}
