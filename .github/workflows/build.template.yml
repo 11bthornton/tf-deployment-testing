@@ -14,9 +14,9 @@ on:
         description: Path to the .csproj file to pack or publish
 
       artifact-name:
-        required: false
+        required: true
         type: string
-        description: Name of the artifact to upload, defaults to 'app-${{ github.sha }}'
+        description: Name of the artifact to upload
 
 jobs:
   build:
