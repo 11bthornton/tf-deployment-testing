@@ -5,10 +5,10 @@ on:
 
 jobs:
   dev:
-    name: 'Deploy to Dev'
+    name: 'Dev'
     uses: ./.github/workflows/deploy.template.yml
 
   uat:
     needs: dev
-    name: 'Deploy to UAT'
+    name: 'UAT'
     uses: ./.github/workflows/deploy.template.yml
