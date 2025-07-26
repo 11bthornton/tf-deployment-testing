@@ -87,30 +87,25 @@ runs:
     - name: Prepare issue body
       shell: bash
       run: |
-        OUTPUT_PATH=".github/approvals/_temp-combined-body.md"
-        mkdir -p "$(dirname "$OUTPUT_PATH")"
-
-        # Use direct input or file
+        mkdir -p .github/approvals
+        TEMP_FILE=".github/approvals/_temp-combined-body.md"
+        
+        # Start with the provided issue body if present
         if [ -n "${{ inputs.issue-body }}" ]; then
-          echo "${{ inputs.issue-body }}" > "$OUTPUT_PATH"
-          echo "" >> "$OUTPUT_PATH"
-        elif [ -n "${{ inputs.issue-body-file-path }}" ] && [ -f "${{ inputs.issue-body-file-path }}" ]; then
-          cat "${{ inputs.issue-body-file-path }}" > "$OUTPUT_PATH"
-          echo "" >> "$OUTPUT_PATH"
+          echo "${{ inputs.issue-body }}" > "$TEMP_FILE"
+          echo "" >> "$TEMP_FILE"
         fi
 
-        # Append plan if present
+        # Add the Terraform plan if it exists
         if [ -n "${TERRAFORM_PLAN_CONTENT:-}" ]; then
-          {
-            echo "## Terraform Plan"
-            echo ""
-            echo '```hcl'
-            echo "$TERRAFORM_PLAN_CONTENT"
-            echo '```'
-          } >> "$OUTPUT_PATH"
+          echo "## Terraform Plan" >> "$TEMP_FILE"
+          echo "" >> "$TEMP_FILE"
+          echo '```hcl' >> "$TEMP_FILE"
+          echo "$TERRAFORM_PLAN_CONTENT" >> "$TEMP_FILE"
+          echo '```' >> "$TEMP_FILE"
         fi
 
-        echo "ISSUE_BODY_FILE_PATH=$OUTPUT_PATH" >> $GITHUB_ENV
+        echo "ISSUE_BODY_FILE_PATH=$TEMP_FILE" >> $GITHUB_ENV
 
     - name: Manual approval
       uses: trstringer/manual-approval@v1
