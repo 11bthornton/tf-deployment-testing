@@ -23,7 +23,7 @@ permissions:
 jobs:
   deploy:
     environment: ${{ inputs.github-environment }}
-    name: 'Deploy to ${{ inputs.environment }}'
+    name: 'Deploy'
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +47,6 @@ jobs:
       - name: Output Terraform Plan to Summary
         run: |
           echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
-          echo "First 20 lines of tfplan.txt:" >> $GITHUB_STEP_SUMMARY
           head -20 ./tfplan-artifact/tfplan.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
@@ -59,8 +58,7 @@ jobs:
           approvers: ${{ github.actor }}
           working-directory: infrastructure
           minimum-approvals: 1
-          issue-title: "Deploying v1.3.5 to prod from staging"
-          issue-body-file-path: .github/approvals/test.md
+          issue-title: "Review Terraform Plan for Deployment - ${{ inputs.environment }} ${{ github.ref_name }}"
           plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
           exclude-workflow-initiator-as-approver: false
           fail-on-denial: true

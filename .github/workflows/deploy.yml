@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   deploy-dev:
-    name: 'Deploy Dev'
+    name: 'Dev'
     uses: ./.github/workflows/deploy.template.yml
     with:
       github-environment: dev
@@ -18,7 +18,7 @@ jobs:
       azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
   deploy-prod:
-    name: 'Deploy Prod'
+    name: 'Prod'
     needs: deploy-dev
     uses: ./.github/workflows/deploy.template.yml
     with:
