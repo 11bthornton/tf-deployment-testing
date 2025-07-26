@@ -32,7 +32,7 @@ resource "azurerm_app_service_plan" "main" {
 
   sku {
     tier = "Basic"
-    size = "B1"
+    size = "S1"
   }
 
   tags = var.tags
