@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Run Terraform Plan
-        uses: ./.github/actions/terraform-plan
+        uses: ./.github/actions/terraform/plan
         with:
           working-directory: infrastructure/dev
           unique-suffix: dev
