@@ -77,7 +77,8 @@ runs:
           echo "TERRAFORM_PLAN_CONTENT=" >> $GITHUB_ENV
         fi
 
-    - name: Format issue body
+    - id: format_body
+      name: Format issue body
       shell: bash
       run: |
         BODY="${{ inputs.issue-body }}"
@@ -87,11 +88,10 @@ runs:
           BODY="${BODY}\n\n${PLAN_SECTION}"
         fi
 
-        {
-          echo "FORMATTED_ISSUE_BODY<<EOF"
-          echo -e "$BODY"
-          echo "EOF"
-        } >> $GITHUB_ENV
+        # Use the recommended way to set outputs for GitHub Actions
+        echo "body<<EOF" >> $GITHUB_OUTPUT
+        echo -e "$BODY" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Manual approval
       uses: trstringer/manual-approval@v1
@@ -100,7 +100,7 @@ runs:
         approvers: ${{ inputs.approvers }}
         minimum-approvals: ${{ inputs.minimum-approvals }}
         issue-title: ${{ inputs.issue-title }}
-        issue-body: "ASFAFASFAFAF"
+        issue-body: ${{ steps.format_body.outputs.body }}
         exclude-workflow-initiator-as-approver: ${{ inputs.exclude-workflow-initiator-as-approver }}
         fail-on-denial: ${{ inputs.fail-on-denial }}
         additional-approved-words: ${{ inputs.additional-approved-words }}
