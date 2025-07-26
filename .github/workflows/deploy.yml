@@ -13,6 +13,7 @@ jobs:
     uses: ./.github/workflows/deploy.template.yml
     with:
       working-directory: infrastructure
+    secrets:
       azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
   deploy-prod:
@@ -21,6 +22,7 @@ jobs:
     uses: ./.github/workflows/deploy.template.yml
     with:
       working-directory: infrastructure
+    secrets:
       azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
     
