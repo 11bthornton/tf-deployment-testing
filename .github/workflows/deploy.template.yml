@@ -81,7 +81,7 @@ jobs:
         with:
           platform: dotnet
           platform-version: '8.0'                            # Change to match your .NET SDK version
-          package: 'src/BlazorApp1'                          # Path to the Blazor project
+          package: 'src/BlazorApp1/BlazorApp1'                          # Path to the Blazor project
           output-path: './build-output' # Output folder to deploy
 
       - name: Deploy to Azure Web App
