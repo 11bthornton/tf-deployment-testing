@@ -15,7 +15,7 @@ resource "azurerm_resource_group" "sdfsdf" {
 
 
 
-resource "azurerm_resource_group" "sdfsdf" {
+resource "azurerm_resource_group" "ssf" {
   name     = "athirdone"
   location = var.location
 
