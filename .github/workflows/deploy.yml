@@ -19,7 +19,7 @@ jobs:
       azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
   display-release-notes:
-    name: 'Release Notes'
+    name: 'Release notes'
     needs: deploy-dev
     runs-on: ubuntu-latest
 
@@ -57,15 +57,6 @@ jobs:
           # Example: derive version from tag or date or file
           VERSION="v1.2.3"  
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      # - name: Create Git tag for version
-      #   run: |
-      #     git config user.name "github-actions"
-      #     git config user.email "actions@github.com"
-      #     git tag ${{ steps.get_version.outputs.version }}
-      #     git push origin ${{ steps.get_version.outputs.version }}
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-prod:
     name: 'Prod'
