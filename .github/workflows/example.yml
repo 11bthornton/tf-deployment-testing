@@ -22,7 +22,7 @@ jobs:
           unique-suffix: dev
           credentials: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - uses: ./.github/actions/manual-approval
+      - uses: ./.github/actions/terraform/review
         with:
           secret: ${{ github.token }}
           approvers: 11bthornton
