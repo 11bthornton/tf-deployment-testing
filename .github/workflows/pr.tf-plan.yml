@@ -1,0 +1,21 @@
+name: (pull request) pr.tf-plan.yml
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  branches:
+    - main
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  tf-plan:
+    name: 'Terraform Plan'
+    uses: ./.github/actions/terraform/plan
+    with:
+      github-environment: uat
+      environment: uat
+    secrets:
+      azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
