@@ -59,12 +59,21 @@ runs:
         name: ${{ inputs.plan-artifact-name }}
         path: ${{ inputs.working-directory }}
 
+    - name: Debug listing working directory
+      if: ${{ inputs.plan-artifact-name != '' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Files in working directory:"
+        ls -la
+
     - name: Extract plan content
       if: ${{ inputs.plan-artifact-name != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
         PLAN_FILE=$(find . -name "*.tfplan" -type f | head -1)
+        echo "Plan file found: $PLAN_FILE"
 
         if [ -n "$PLAN_FILE" ]; then
           terraform show -no-color "$PLAN_FILE" > terraform-plan-output.txt
@@ -73,7 +82,9 @@ runs:
             cat terraform-plan-output.txt
             echo "EOF"
           } >> $GITHUB_ENV
+          echo "Terraform plan content extracted successfully."
         else
+          echo "No .tfplan file found."
           echo "TERRAFORM_PLAN_CONTENT=" >> $GITHUB_ENV
         fi
 
@@ -81,6 +92,9 @@ runs:
       name: Format issue body
       shell: bash
       run: |
+        echo "Raw input issue body:"
+        echo "${{ inputs.issue-body }}"
+
         BODY="${{ inputs.issue-body }}"
 
         if [ -n "${TERRAFORM_PLAN_CONTENT:-}" ]; then
@@ -88,10 +102,17 @@ runs:
           BODY="${BODY}\n\n${PLAN_SECTION}"
         fi
 
-        # Use the recommended way to set outputs for GitHub Actions
+        echo "Final composed body:"
+        echo -e "$BODY"
+
         echo "body<<EOF" >> $GITHUB_OUTPUT
         echo -e "$BODY" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Debug output from format_body step
+      run: |
+        echo "Output body from format_body step:"
+        echo "${{ steps.format_body.outputs.body }}"
 
     - name: Manual approval
       uses: trstringer/manual-approval@v1
