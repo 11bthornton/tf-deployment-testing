@@ -82,10 +82,10 @@ jobs:
           platform: dotnet
           platform-version: '8.0'                            # Change to match your .NET SDK version
           package: 'src/BlazorApp1'                          # Path to the Blazor project
-          output-path: '${{ github.workspace }}/build-output' # Output folder to deploy
+          output-path: './build-output' # Output folder to deploy
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: my-blazor-app-efghj
-          package: '${{ github.workspace }}/build-output'
+          package: './build-output'
