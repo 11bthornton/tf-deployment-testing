@@ -7,6 +7,12 @@ terraform {
       version = "~> 3.0"
     }
   }
+   backend "azurerm" {
+    resource_group_name  = "state"
+    storage_account_name = "projectzterraformstate"
+    container_name       = "projectztfstatecontainer"
+    key                  = "fnol.tfstate"
+  }
 }
 
 provider "azurerm" {
