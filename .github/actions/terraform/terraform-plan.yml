@@ -1,0 +1,53 @@
+name: Terraform Plan
+description: Run Terraform plan and upload artifact
+inputs:
+  working-directory:
+    required: true
+    description: Path to the Terraform project
+  unique-suffix:
+    required: true
+    description: Unique string to append to the artifact name
+  credentials:
+    required: true
+    description: Azure credentials JSON
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.6.6
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ inputs.credentials }}
+
+    - name: Terraform Init
+      run: terraform init
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Terraform Validate
+      run: terraform validate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Terraform Plan
+      run: |
+        terraform plan -out=tfplan.binary -input=false
+        terraform show -no-color tfplan.binary > tfplan.txt
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Upload Plan Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.unique-suffix }}
+        path: |
+          ${{ inputs.working-directory }}/tfplan.txt
+          ${{ inputs.working-directory }}/tfplan.binary

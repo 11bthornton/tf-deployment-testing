@@ -8,13 +8,11 @@ on:
 jobs:
   plan:
     name: 'TF'
-    uses: ./.github/workflows/terraform-plan.template.yml
+    uses: ./.github/actions/terraform-plan
     with:
-      working-directory: infrastructure
-      environment: approval-uat
-      unique-suffix: 'example-suffix'
-    secrets:
-      credentials: ${{ secrets.service_connection }}
+      working-directory: infrastructure/dev
+      unique-suffix: dev
+      credentials: ${{ secrets.AZURE_CREDENTIALS }}
 
   apply:
     name: 'TF'
