@@ -10,6 +10,9 @@ on:
         required: false
         type: string
         default: ""
+      unique-suffix:
+        required: true
+        type: string
     secrets:
       credentials:
         required: true
@@ -63,4 +66,4 @@ jobs:
             ${{ inputs.working-directory }}/tfplan.txt
             ${{ inputs.working-directory }}/tfplan.binary
         env:
-          ARTIFACT_NAME: tfplan-${{ github.run_id }}-${{ github.run_attempt }}
+          ARTIFACT_NAME: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.unique-suffix }}
