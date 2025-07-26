@@ -21,7 +21,7 @@ jobs:
     name: 'Production Gate'
     needs: deploy-dev
     runs-on: ubuntu-latest
-    environment: production
+    environment: production_gate
 
     steps:
       - name: Checkout code
