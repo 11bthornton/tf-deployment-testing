@@ -58,7 +58,8 @@ jobs:
           approvers: ${{ github.actor }}
           working-directory: infrastructure
           minimum-approvals: 1
-          issue-title: "Review Terraform Plan for Deployment - ${{ inputs.environment }} ${{ github.ref_name }}"
+          issue-title: "Review Terraform Plan for Deployment - ${{ inputs.environment }} - ${{ github.ref_name }}"
+          issue-body-file-path: .github/approvals/test.md
           plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.environment }}
           exclude-workflow-initiator-as-approver: false
           fail-on-denial: true
