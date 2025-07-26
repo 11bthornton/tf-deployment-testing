@@ -60,7 +60,6 @@ runs:
         path: ${{ inputs.working-directory }}
 
     - name: Debug listing working directory
-      if: ${{ inputs.plan-artifact-name != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
@@ -68,7 +67,6 @@ runs:
         ls -la
 
     - name: Extract plan content
-      if: ${{ inputs.plan-artifact-name != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
@@ -92,14 +90,10 @@ runs:
       name: Format issue body
       shell: bash
       run: |
-        echo "Raw input issue body:"
-        echo "${{ inputs.issue-body }}"
-
-        BODY="${{ inputs.issue-body }}"
-
         if [ -n "${TERRAFORM_PLAN_CONTENT:-}" ]; then
-          PLAN_SECTION="## Terraform Plan\n\n\`\`\`hcl\n${TERRAFORM_PLAN_CONTENT}\n\`\`\`"
-          BODY="${BODY}\n\n${PLAN_SECTION}"
+          BODY="## Terraform Plan\n\n\`\`\`hcl\n${TERRAFORM_PLAN_CONTENT}\n\`\`\`"
+        else
+          BODY="No Terraform plan available."
         fi
 
         echo "Final composed body:"
