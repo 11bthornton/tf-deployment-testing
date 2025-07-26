@@ -68,15 +68,12 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        # Find the .tfplan file
         PLAN_FILE=$(find . -name "*.tfplan" -type f | head -1)
         
         if [ -n "$PLAN_FILE" ]; then
           echo "Found plan file: $PLAN_FILE"
-          # Convert binary plan to human-readable format
           terraform show -no-color "$PLAN_FILE" > terraform-plan-output.txt
-          
-          # Read the plan content and set it as an environment variable
+
           {
             echo "TERRAFORM_PLAN_CONTENT<<EOF"
             cat terraform-plan-output.txt
@@ -90,33 +87,30 @@ runs:
     - name: Prepare issue body
       shell: bash
       run: |
-        # Create a temporary file for the issue body
-        TEMP_FILE=$(mktemp)
-        
-        # Add the original issue body if it exists
+        OUTPUT_PATH=".github/approvals/_temp-combined-body.md"
+        mkdir -p "$(dirname "$OUTPUT_PATH")"
+
+        # Use direct input or file
         if [ -n "${{ inputs.issue-body }}" ]; then
-          echo "${{ inputs.issue-body }}" > "$TEMP_FILE"
-          echo "" >> "$TEMP_FILE"
+          echo "${{ inputs.issue-body }}" > "$OUTPUT_PATH"
+          echo "" >> "$OUTPUT_PATH"
+        elif [ -n "${{ inputs.issue-body-file-path }}" ] && [ -f "${{ inputs.issue-body-file-path }}" ]; then
+          cat "${{ inputs.issue-body-file-path }}" > "$OUTPUT_PATH"
+          echo "" >> "$OUTPUT_PATH"
         fi
-        
-        # Add the terraform plan if it exists
+
+        # Append plan if present
         if [ -n "${TERRAFORM_PLAN_CONTENT:-}" ]; then
-          echo "## Terraform Plan" >> "$TEMP_FILE"
-          echo "" >> "$TEMP_FILE"
-          echo '```hcl' >> "$TEMP_FILE"
-          echo "$TERRAFORM_PLAN_CONTENT" >> "$TEMP_FILE"
-          echo '```' >> "$TEMP_FILE"
+          {
+            echo "## Terraform Plan"
+            echo ""
+            echo '```hcl'
+            echo "$TERRAFORM_PLAN_CONTENT"
+            echo '```'
+          } >> "$OUTPUT_PATH"
         fi
-        
-        # Set the formatted body as an environment variable
-        {
-          echo "FORMATTED_ISSUE_BODY<<BODY_EOF"
-          cat "$TEMP_FILE"
-          echo "BODY_EOF"
-        } >> $GITHUB_ENV
-        
-        # Clean up
-        rm -f "$TEMP_FILE"
+
+        echo "ISSUE_BODY_FILE_PATH=$OUTPUT_PATH" >> $GITHUB_ENV
 
     - name: Manual approval
       uses: trstringer/manual-approval@v1
@@ -125,7 +119,7 @@ runs:
         approvers: ${{ inputs.approvers }}
         minimum-approvals: ${{ inputs.minimum-approvals }}
         issue-title: ${{ inputs.issue-title }}
-        issue-body: ${{ env.FORMATTED_ISSUE_BODY }}
+        issue-body-file-path: ${{ env.ISSUE_BODY_FILE_PATH }}
         exclude-workflow-initiator-as-approver: ${{ inputs.exclude-workflow-initiator-as-approver }}
         fail-on-denial: ${{ inputs.fail-on-denial }}
         additional-approved-words: ${{ inputs.additional-approved-words }}
