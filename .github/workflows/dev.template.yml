@@ -1,7 +1,7 @@
 name: (template) dev.template.yml
 
 on:
-  workflow_dispatch:
+  workflow_call:
 
 permissions:
   issues: write
