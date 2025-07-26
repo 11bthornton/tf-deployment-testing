@@ -11,7 +11,13 @@ inputs:
     required: true
     description: Azure credentials JSON
 
-runs:
+outputs:
+  plan-artifact-name:
+    description: Name of the uploaded plan artifact
+    value: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.unique-suffix }}
+  plan-exit-code:
+    description: Exit code from terraform plan (0=no changes, 1=error, 2=changes)
+    value: ${{ steps.plan.outputs.exit-code }}
   using: "composite"
   steps:
     - name: Checkout repository
@@ -43,9 +49,37 @@ runs:
       working-directory: ${{ inputs.working-directory }}
 
     - name: Terraform Plan
+      id: plan
       run: |
-        terraform plan -out=tfplan.binary -input=false
+        # Run terraform plan and capture exit code
+        set +e  # Don't exit on non-zero exit codes
+        terraform plan -out=tfplan.binary -input=false -detailed-exitcode
+        PLAN_EXIT_CODE=$?
+        set -e  # Re-enable exit on error
+        
+        # Set the exit code as an output
+        echo "exit-code=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
+        
+        # Generate human-readable plan regardless of exit code
         terraform show -no-color tfplan.binary > tfplan.txt
+        
+        # Log the exit code meaning
+        case $PLAN_EXIT_CODE in
+          0)
+            echo "✅ No changes detected"
+            ;;
+          1)
+            echo "❌ Error occurred during planning"
+            exit 1
+            ;;
+          2)
+            echo "📝 Changes detected and planned"
+            ;;
+          *)
+            echo "⚠️ Unexpected exit code: $PLAN_EXIT_CODE"
+            exit $PLAN_EXIT_CODE
+            ;;
+        esac
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
