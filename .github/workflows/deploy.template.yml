@@ -1,9 +1,6 @@
 name: Deploy Template
 on:
   workflow_call:
-    secrets:
-      azure_credentials:
-        description: 'Azure credentials for Terraform deployment'
 
 jobs:
   plan:
