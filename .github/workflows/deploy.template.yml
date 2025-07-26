@@ -1,0 +1,65 @@
+name: Deploy
+
+on:
+  workflow_call:
+    secrets:
+      azure_service_connection:
+        required: true
+        description: Azure credentials JSON for Terraform operations
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  deploy:
+    name: 'Deploy'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Terraform Plan
+        id: plan
+        uses: ./.github/actions/terraform/plan
+        with:
+          working-directory: infrastructure
+          unique-suffix: dev
+          credentials: ${{ secrets.azure_service_connection }}
+
+      - name: Download Terraform Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
+          path: ./tfplan-artifact
+
+      - name: Output Terraform Plan to Summary
+        run: |
+          echo "## Terraform Plan" >> $GITHUB_STEP_SUMMARY
+          echo "First 20 lines of tfplan.txt:" >> $GITHUB_STEP_SUMMARY
+          head -20 ./tfplan-artifact/tfplan.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Manual approval
+        if: steps.plan.outputs.plan-exit-code == '2'
+        uses: ./.github/actions/terraform/review
+        with:
+          secret: ${{ github.token }}
+          approvers: ${{ github.actor }}
+          working-directory: infrastructure
+          minimum-approvals: 1
+          issue-title: "Deploying v1.3.5 to prod from staging"
+          issue-body-file-path: .github/approvals/test.md
+          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
+          exclude-workflow-initiator-as-approver: false
+          fail-on-denial: true
+          additional-approved-words: ''
+          additional-denied-words: ''
+
+      - name: Terraform Apply
+        uses: ./.github/actions/terraform/apply
+        with:
+          working-directory: infrastructure
+          plan-artifact-name: tfplan-${{ github.run_id }}-${{ github.run_attempt }}-dev
+          credentials: ${{ secrets.azure_service_connection }}
