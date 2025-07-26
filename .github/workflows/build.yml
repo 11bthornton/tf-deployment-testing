@@ -17,4 +17,5 @@ jobs:
     with:
       solution-path: 'src/BlazorApp1/BlazorApp1.sln'
       project-path: 'src/BlazorApp1/BlazorApp1/BlazorApp1.csproj'
+      
       artifact-name: 'fnol-web'
