@@ -17,15 +17,38 @@ jobs:
     secrets:
       azure_service_connection: ${{ secrets.AZURE_CREDENTIALS }}
 
+  display-release-notes:
+    name: 'Release Notes'
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Display Release Notes
+        run: |
+          echo "## Release Notes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f "release-notes.md" ]; then
+            cat release-notes.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No release notes found." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please review the above changes before approving deployment to production." >> $GITHUB_STEP_SUMMARY
+
   production_gate:
     name: 'Production Gate'
-    needs: deploy-dev
+    needs: [deploy-dev, display-release-notes]
     runs-on: ubuntu-latest
     environment: production_gate
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get version number
         id: get_version
@@ -45,7 +68,7 @@ jobs:
 
   deploy-prod:
     name: 'Prod'
-    needs: [deploy-dev, production_gate]
+    needs: [deploy-dev, display-release-notes, production_gate]
     uses: ./.github/workflows/deploy.template.yml
     with:
       github-environment: prod
