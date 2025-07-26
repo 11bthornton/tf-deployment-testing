@@ -1,4 +1,4 @@
-name: Deploy Template
+name: (template) Deploy.Template.Yml
 
 on:
   workflow_call:
